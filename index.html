@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  index.html  —  the entire website, in one file.
+  ============================================================================
+  There is no framework, no build step, no server. A browser opens this file
+  and everything happens here. The file is laid out in four parts:
+
+    1. <head>   — page setup + the web font.
+    2. <style>  — ALL the CSS (how things look).
+    3. <script> (first one) — the DATA: your posts, music, photos, links.
+    4. <body>   — the page STRUCTURE (the actual content + empty containers).
+    5. <script> (last one) — the BEHAVIOUR: JS that fills the containers and
+                  handles clicks, routing, the editor, and publishing.
+
+  Tip while learning: read top to bottom once. Each section below has a comment
+  explaining what it does and *why*. Edit text directly; edit looks in <style>.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<!-- charset = which character table; utf-8 supports — “ ” ★ ☞ etc. Always include it. -->
+<meta charset="utf-8">
+<!-- viewport = "render at real device width" so phones don't zoom out. Needed for mobile. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The text in the browser TAB. -->
+<title>— the troubled corner —</title>
+<!-- preconnect = "start the handshake to this server early" so the font loads a bit faster. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- One external dependency, load-bearing: system fonts can't do the letterpress look. -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  /* --------------------------------------------------------------------------
+     CSS VARIABLES (a.k.a. "custom properties").
+     Defining colours/sizes once here, then reusing them everywhere via var(--name),
+     means you change a colour in ONE place and the whole site updates.
+     :root = the top of the document, so these are available to every element.
+     -------------------------------------------------------------------------- */
+  :root{
+    --paper:#f4f1e8; --ink:#1a1a1a; --oxblood:#7c1f1f; --faded:#6b6256;
+    --hairline:rgba(26,26,26,.12); --measure:680px;   /* --measure = comfortable reading width */
+  }
+
+  /* box-sizing:border-box = padding/border count INSIDE an element's width,
+     so widths stay predictable. The * selects every element. Standard first line of any CSS. */
+  *{box-sizing:border-box}
+  /* smooth scrolling for in-page #anchor jumps */
+  html{scroll-behavior:smooth}
+
+  /* The base look of the whole page. The `font:` shorthand packs several values:
+     weight(400) size(19px)/line-height(1.62) family. */
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font:400 19px/1.62 "EB Garamond",Georgia,serif;
+    -webkit-font-smoothing:antialiased; padding:0 22px;
+  }
+  /* .wrap = a reusable centred column. margin:0 auto centres a fixed-width block. */
+  .wrap{max-width:var(--measure); margin:0 auto}
+
+  /* Links: oxblood, no underline until hovered. transition = animate the colour change over .25s. */
+  a{color:var(--oxblood); text-decoration:none; transition:color .25s ease}
+  a:hover{text-decoration:underline}
+
+  /* Small reusable text styles. small-caps renders lowercase letters as little capitals. */
+  .display{font-family:"IM Fell English",Georgia,serif}
+  .smallcaps{font-variant:small-caps; letter-spacing:.08em}
+  .faded{color:var(--faded)}
+  .mono-date{font-variant:small-caps; letter-spacing:.1em; color:var(--oxblood); font-size:.82em}
+
+  /* dividers — the ★ row and thin horizontal rules between sections */
+  .stars{ text-align:center; color:var(--oxblood); letter-spacing:.6em; margin:3.2rem 0; font-size:.9em }
+  .rule{ border:0; border-top:1px solid var(--hairline); margin:2.4rem auto; max-width:var(--measure) }
+
+  /* masthead (the big title block at the very top) */
+  header.mast{ text-align:center; padding:5rem 0 1rem }
+  .ornament{ width:120px; margin:0 auto 1.4rem; color:var(--ink); cursor:pointer }
+  /* clamp(min, preferred, max) = a font-size that scales with screen width but never
+     smaller than 2.4rem nor bigger than 3.6rem. Responsive sizing in one line.
+     text-transform:none = show the title in whatever case you actually type. */
+  .mast h1{ font-family:"IM Fell English",serif; font-weight:400; color:var(--oxblood);
+    font-size:clamp(2.4rem,7vw,3.6rem); letter-spacing:.06em; margin:.2rem 0 .1rem; text-transform:none }
+  .mast .tagline{ font-style:italic; color:var(--faded); margin:.2rem 0 1rem }
+  /* font-variant:normal cancels the small-caps from the .smallcaps class, so the byline
+     shows in the exact case you type. .mast .byline beats .smallcaps on specificity. */
+  .mast .byline{ font-variant:normal; letter-spacing:.12em; font-size:.85em;
+    border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
+    display:inline-block; padding:.4rem 1.2rem }
+  /* the easter-egg line: hidden (display:none) until JS flips it on */
+  .printmark{ display:none; font-style:italic; color:var(--faded); margin-top:1rem; font-size:.85em }
+
+  /* section headings */
+  section{ padding:1.4rem 0 }
+  h2.sec{ font-family:"IM Fell English",serif; font-weight:400; color:var(--oxblood);
+    font-variant:small-caps; letter-spacing:.14em; font-size:1.8rem; margin:0 0 1.2rem }
+  h3{ font-family:"IM Fell English",serif; font-weight:400; font-size:1.4rem; margin:1.6rem 0 .4rem }
+
+  /* contents / index list */
+  .contents ol{ list-style:none; padding:0; margin:0 }   /* list-style:none removes the number bullets */
+  .contents li{ padding:.18rem 0 }
+  .contents .lead{ font-variant:small-caps; letter-spacing:.1em }
+  .contents .sub{ padding-left:1.4rem; font-size:.95em }
+  /* ::before = a pseudo-element: CSS inserts the ☞ glyph before each sub-item without it being in the HTML */
+  .contents .sub::before{ content:"☞ "; color:var(--oxblood) }
+
+  /* about / welcome block */
+  .about{ border-left:2px solid var(--oxblood); padding-left:1.3rem }
+  /* ::first-letter = style just the first letter → the big drop cap. float:left lets text wrap around it. */
+  .dropcap::first-letter{ font-family:"IM Fell English",serif; float:left; font-size:3.4rem;
+    line-height:.8; padding:.1rem .5rem 0 0; color:var(--oxblood) }
+
+  /* writing (blog posts) */
+  article.post{ border-bottom:1px solid var(--hairline); padding:1.1rem 0 }
+  .post .head{ cursor:pointer }
+  .post .title{ font-family:"IM Fell English",serif; font-size:1.45rem; color:var(--ink) }
+  .post:hover .title{ color:var(--oxblood) }
+  .post .preview{ color:var(--faded); margin:.25rem 0 0 }
+  /* A post body is hidden until its article also has the class "open" (toggled by JS on click). */
+  .post .body{ display:none; max-width:var(--measure); margin-top:1rem }
+  .post.open .body{ display:block }
+  .post .body img{ max-width:100%; height:auto }
+  .post .cover{ width:100%; margin:.6rem 0 1rem; filter:saturate(.92) }
+  .tag{ font-variant:small-caps; letter-spacing:.08em; font-size:.72em; color:var(--paper);
+    background:var(--oxblood); padding:.08rem .5rem; margin-left:.5rem; vertical-align:.15em }
+  .permalink{ cursor:pointer; color:var(--oxblood); margin-left:.4rem; opacity:.5 }
+  .permalink:hover{ opacity:1 }
+
+  /* listening list */
+  .listen{ list-style:none; padding:0; margin:0 }
+  .listen li{ padding:.5rem 0; border-bottom:1px dotted var(--hairline) }
+  .listen .album{ font-family:"IM Fell English",serif; font-size:1.15rem }
+
+  /* plates (photos). display:flex + flex-wrap = items sit in a row and wrap to the next line as needed. */
+  .plates{ display:flex; flex-wrap:wrap; gap:1.6rem; justify-content:center }
+  .plate{ background:#fff; padding:.5rem .5rem 1.4rem; box-shadow:0 1px 4px rgba(0,0,0,.15);
+    max-width:230px; cursor:pointer }
+  /* :nth-child(2n)/(3n) = every 2nd / every 3rd photo, given a slight tilt → scattered look */
+  .plate:nth-child(2n){ transform:rotate(-1.6deg) }
+  .plate:nth-child(3n){ transform:rotate(1.4deg) }
+  .plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
+  .plate .cap{ font-style:italic; color:var(--faded); font-size:.82em; text-align:center; margin-top:.4rem }
+
+  /* links */
+  .links{ list-style:none; padding:0; margin:0 }
+  .links li{ padding:.4rem 0 }
+  .links .note{ color:var(--faded); font-size:.9em }
+
+  /* footer */
+  footer{ text-align:center; padding:3rem 0 4rem; color:var(--faded); font-size:.9em }
+  footer .colophon{ font-style:italic; margin:.6rem 0 }
+
+  /* back-to-top button. position:fixed = stays pinned to the screen corner while you scroll
+     (vs the page). It starts invisible (opacity:0); JS adds .show past 600px of scroll. */
+  #totop{ position:fixed; right:18px; bottom:18px; font-size:1.6rem; color:var(--oxblood);
+    background:var(--paper); border:1px solid var(--hairline); border-radius:50%;
+    width:46px; height:46px; cursor:pointer; opacity:0; transition:opacity .3s ease; line-height:44px; text-align:center }
+  #totop.show{ opacity:.85 }
+
+  /* lightbox = the full-screen overlay when you click a photo. inset:0 = pin to all four edges. */
+  #lightbox{ position:fixed; inset:0; background:rgba(20,18,14,.9); display:none;
+    align-items:center; justify-content:center; cursor:zoom-out; z-index:50; padding:30px }
+  #lightbox img{ max-width:92vw; max-height:92vh; box-shadow:0 0 40px rgba(0,0,0,.6) }
+
+  /* admin editor (hidden by default; revealed via #admin) */
+  #admin{ display:none; border-top:2px solid var(--oxblood); margin-top:4rem; padding-top:1.4rem }
+  #admin.reveal{ display:block }
+  #admin input,#admin textarea,#admin select{ width:100%; font-family:inherit; font-size:1rem;
+    background:#fbf9f3; border:1px solid var(--hairline); padding:.5rem; margin:.25rem 0 .8rem; color:var(--ink) }
+  #admin textarea{ min-height:220px; font-family:"Consolas",monospace; font-size:.92rem }
+  #admin button{ font-family:"IM Fell English",serif; font-size:1rem; background:var(--oxblood);
+    color:var(--paper); border:0; padding:.5rem 1.1rem; cursor:pointer; margin:.2rem .3rem .2rem 0 }
+  #admin button.ghost{ background:transparent; color:var(--oxblood); border:1px solid var(--oxblood) }
+  .toolbar button{ background:#fbf9f3; color:var(--ink); border:1px solid var(--hairline); padding:.3rem .5rem; font-size:.85rem }
+  #preview{ border:1px solid var(--hairline); padding:1rem; background:#fbf9f3; margin-top:.6rem }
+  .label{ font-variant:small-caps; letter-spacing:.08em; color:var(--faded); font-size:.85em }
+  #msg{ margin:.6rem 0; font-style:italic }
+
+  /* @media = apply these rules ONLY when the screen is 600px wide or less (phones). */
+  @media (max-width:600px){
+    body{ font-size:17px; padding:0 16px }
+    header.mast{ padding:3rem 0 1rem }
+  }
+</style>
+</head>
+<body>
+
+<!--
+  ============================ DATA ============================
+  Your content lives here as plain JavaScript lists ("arrays").
+  Each {curly block} is one item. To add a post/song/photo/link,
+  copy an existing block and change the values. That's the whole CMS.
+  NOTE: the POSTS_START/END comment lines are markers the in-site editor
+  searches for when it publishes — don't rename or delete them.
+-->
+<script>
+// === POSTS_START ===
+const POSTS = [
+  {
+    "slug": "hello",
+    "title": "Setting type",
+    "date": "2026-06-16",
+    "preview": "A first mark on the page.",
+    "body": "<p>This is where the writing goes. Bodies are plain HTML — paragraphs, <em>emphasis</em>, links, images, whatever the page allows.</p><p>Nothing fancy. Just a quiet place to think out loud.</p>",
+    "cover": null
+  }
+];
+// === POSTS_END ===
+
+const LISTENING = [
+  { album:"Selected Ambient Works 85–92", artist:"Aphex Twin", note:"for grey afternoons", url:"https://www.youtube.com/results?search_query=aphex+twin+selected+ambient+works" }
+];
+const PLATES = [
+  // { src:"https://…/photo.jpg", caption:"a window, somewhere", date:"2026-05" }
+];
+const LINKS = [
+  { title:"From Jason", url:"https://www.fromjason.xyz/", note:"the inspiration for this place" },
+  { title:"near.blog", url:"https://near.blog/", note:"simple is enough" }
+];
+
+// --- CONFIG: fill these in before the in-site editor can publish ------------
+// OWNER/REPO tell the editor which GitHub repo to commit to. TOKEN_CIPHER is your
+// encrypted GitHub token (make it with encrypt-token.html). All stay safe to be public.
+const CONFIG = {
+  OWNER: "YOUR_GITHUB_USERNAME",   // e.g. "uday"
+  REPO:  "YOUR_REPO_NAME",         // e.g. "site"
+  BRANCH:"main",
+  TOKEN_CIPHER: null               // { "salt":"…", "iv":"…", "ct":"…" }
+};
+// ---------------------------------------------------------------------------
+</script>
+
+<!--
+  ============================ STRUCTURE ============================
+  The visible page. Notice the EMPTY containers like <ol id="contents-list">
+  and <div id="writing-list"> — they're filled in by the JS at the bottom,
+  reading from the DATA arrays above. That's why an `id` matters: JS finds
+  elements by their id.
+-->
+
+<!-- MASTHEAD: the title block. The <svg> is a hand-drawn ornament (also the easter egg). -->
+<header class="mast wrap">
+  <!-- inline ornament so there are zero dead external image links; swap for a woodcut SVG/PNG URL anytime -->
+  <svg class="ornament" viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="1.2" id="ornament" aria-label="ornament">
+    <path d="M10 30 H45 M75 30 H110"/>
+    <circle cx="60" cy="30" r="9"/>
+    <path d="M60 12 L66 24 M60 12 L54 24 M60 48 L66 36 M60 48 L54 36"/>
+    <path d="M45 30 q15 -14 15 0 q0 14 15 0" />
+  </svg>
+  <h1>— the troubled corner —</h1>
+  <p class="tagline">notes, plates &amp; all the other things which irk me</p>
+  <div class="byline smallcaps">by uday</div>
+  <p class="printmark" id="printmark">✦ set by hand, pressed once, kept forever ✦</p>
+</header>
+
+<div class="stars">★ ★ ★ ★ ★</div>
+
+<!-- HOME: the long scrolling page. The router (in JS) hides this whole block
+     when you visit the colophon "page", and shows it again otherwise. -->
+<main class="wrap" id="home">
+
+  <!-- Contents: filled by renderContents(). Lists sections + every post + the colophon link. -->
+  <section id="contents" class="contents">
+    <h2 class="sec">Contents</h2>
+    <ol id="contents-list"></ol>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Welcome: plain text you write directly. The drop cap comes from the .dropcap class. -->
+  <section id="about">
+    <h2 class="sec">Welcome</h2>
+    <p class="about dropcap">Welcome, whoever you are. This is a small, quiet corner of the web I keep for
+      myself — somewhere to think out loud, set a little type, and figure out my own style without anyone
+      watching. Make yourself comfortable. There's tea, metaphorically.</p>
+    <p class="faded" style="margin-top:1rem">Curious how this place is put together? <a href="#/colophon">Read the colophon ☞</a></p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Writing: empty container; renderWriting() builds the post cards into it. -->
+  <section id="writing">
+    <h2 class="sec">Writing</h2>
+    <div id="writing-list"></div>
+  </section>
+
+  <div class="stars">★ ★ ★ ★ ★</div>
+
+  <!-- Listening: filled by renderListening() -->
+  <section id="listening">
+    <h2 class="sec">Listening</h2>
+    <ul class="listen" id="listening-list"></ul>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Plates (photos): filled by renderPlates() -->
+  <section id="plates">
+    <h2 class="sec">Plates</h2>
+    <div class="plates" id="plates-list"></div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Marginalia (links): filled by renderLinks() -->
+  <section id="marginalia">
+    <h2 class="sec">Marginalia</h2>
+    <ul class="links" id="links-list"></ul>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Admonitions: anonymous feedback. Handled entirely by admonymous.co (their backend),
+       so this is just a link out. target="_blank" opens it in a new tab; rel="noopener" is a
+       small security/perf safeguard for new-tab links. Swap for a native form later if wanted. -->
+  <section id="admonitions">
+    <h2 class="sec">Admonitions</h2>
+    <p>Think I'm wrong about something? Tell me — anonymously, no names, no accounts.
+      <a href="https://www.admonymous.co/uday-gupta" target="_blank" rel="noopener">Leave an anonymous note ☞</a></p>
+  </section>
+
+</main>
+
+<!-- COLOPHON: a separate "page". It lives in the same file but is hidden until the
+     URL hash is #/colophon (handled by showRoute() in JS). Everything here is plain text. -->
+<section id="page-colophon" class="wrap" style="display:none">
+  <div class="stars">★ ★ ★ ★ ★</div>
+  <h2 class="sec">Colophon</h2>
+  <p class="about dropcap">A colophon is the note at the back of an old book that tells you how it was made —
+    the type, the press, the hands involved. Here is this one's.</p>
+
+  <h3>Typefaces</h3>
+  <p>Set in <em>IM Fell English</em> — a digitisation of a 17th-century letterpress face, ink-spread and all —
+    for display, and <em>EB Garamond</em> for reading. Both served from Google Fonts; everything else is a system serif.</p>
+
+  <h3>How it's built</h3>
+  <p>One hand-written <code>index.html</code>. No framework, no build step, no bundler, no dependencies —
+    all the CSS and JavaScript live in the page itself. The whole site is a single file you could read top to bottom.</p>
+
+  <h3>Where it lives</h3>
+  <p>Hosted on GitHub Pages. A <code>git push</code> publishes it; there is no server to keep running.</p>
+
+  <h3>How it's written</h3>
+  <p>New posts are written from a hidden editor inside the site, which commits the change straight to the
+    repository through the GitHub API. The token that allows this is encrypted in the browser with the Web Crypto
+    API and unlocked by a passphrase — no secrets sit in the open, and there is no backend.</p>
+
+  <h3>Ornaments</h3>
+  <p>Drop caps, star dividers, and the pointing hand (☞, a <em>manicule</em>) are old printer's conventions.
+    Engravings, where they appear, come from the public domain.</p>
+
+  <h3>In the spirit of</h3>
+  <p>The small, weird, hand-made web — and in particular
+    <a href="https://www.fromjason.xyz/">From Jason</a> and <a href="https://near.blog/">near.blog</a>,
+    which showed that a personal site can just be calm and yours.</p>
+
+  <p style="margin-top:2rem"><a href="#contents">☞ back to the index</a></p>
+  <div class="stars">★ ★ ★ ★ ★</div>
+</section>
+
+<footer class="wrap">
+  <div class="stars">★ ★ ★ ★ ★</div>
+  <div class="colophon">Set in IM Fell English &amp; EB Garamond. Hand-built, no frameworks.</div>
+  <div><span id="year"></span> · <a href="mailto:you@example.com">email</a> · <a href="#">github</a></div>
+</footer>
+
+<!-- ADMIN: the hidden in-site editor. Stays out of view until you visit #admin. -->
+<section id="admin" class="wrap">
+  <h2 class="sec">Admin</h2>
+  <!-- The lock screen: shown until the passphrase decrypts the token. -->
+  <div id="lock">
+    <p class="faded">Enter passphrase to unlock the editor.</p>
+    <input type="password" id="passphrase" placeholder="passphrase" autocomplete="off">
+    <button id="unlock">Unlock</button>
+  </div>
+  <!-- The editor itself: hidden until unlocked. -->
+  <div id="editor" style="display:none">
+    <span class="label">Edit existing</span>
+    <select id="existing"><option value="">— new post —</option></select>
+    <span class="label">Title</span><input id="f-title">
+    <span class="label">Slug</span><input id="f-slug">
+    <span class="label">Date</span><input type="date" id="f-date">
+    <span class="label">Preview</span><input id="f-preview">
+    <span class="label">Cover URL (optional)</span><input id="f-cover">
+    <span class="label">Body</span>
+    <!-- Toolbar buttons. Each carries instructions in data-* attributes that the JS reads:
+         data-tag wraps the selection in <tag></tag>; data-wrap uses a custom template (| = cursor). -->
+    <div class="toolbar">
+      <button data-tag="strong">B</button>
+      <button data-tag="em">i</button>
+      <button data-wrap="<h2>|</h2>">H2</button>
+      <button data-wrap="<h3>|</h3>">H3</button>
+      <button data-wrap="<ul>\n  <li>|</li>\n</ul>">• list</button>
+      <button data-wrap="<ol>\n  <li>|</li>\n</ol>">1. list</button>
+      <button data-tag="blockquote">❝</button>
+      <button data-tag="code">code</button>
+      <button data-link>link</button>
+      <button data-img>img</button>
+      <button data-wrap="\n<hr>\n">— hr —</button>
+    </div>
+    <textarea id="f-body" placeholder="<p>Write HTML here…</p>"></textarea>
+    <span class="label">Live preview</span>
+    <div id="preview" class="dropcap"></div>
+    <div id="msg"></div>
+    <button id="publish">Publish</button>
+    <button id="reload" class="ghost" style="display:none">Reload</button>
+    <button id="disconnect" class="ghost">Disconnect</button>
+  </div>
+</section>
+
+<!-- These two live outside everything because they float over the page (position:fixed). -->
+<div id="totop" title="back to top">☞</div>
+<div id="lightbox"><img alt=""></div>
+
+<!--
+  ============================ BEHAVIOUR ============================
+  This script runs after the HTML above exists, so it can find elements by id.
+  It (1) renders the data into the page, (2) handles clicks/scroll/routing,
+  and (3) powers the hidden editor + publishing.
+-->
+<script>
+// Tiny helpers used everywhere:
+// $('#x')  = "find the element matching this CSS selector" (shorter than document.querySelector).
+const $ = s => document.querySelector(s);
+// el('li','lead','<a>…') = "make a <li>, give it class 'lead', set its inner HTML". Saves repetition.
+const el = (t,c,h)=>{ const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+// sort comparator: newest date first (used for posts).
+const byDateDesc = (a,b)=> a.date<b.date?1:a.date>b.date?-1:0;
+// drop the current year into the footer.
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------- render: turn the DATA arrays into HTML on the page ---------- */
+function renderContents(){
+  const ol = $('#contents-list'); ol.innerHTML='';            // start empty
+  const secs = [['#about','Welcome'],['#writing','Writing'],['#listening','Listening'],['#plates','Plates'],['#marginalia','Marginalia'],['#admonitions','Admonitions']];
+  for(const [href,name] of secs){                              // one row per section
+    const li = el('li','lead'); li.innerHTML = `<a href="${href}">${name}</a>`; ol.appendChild(li);
+    if(href==='#writing'){                                     // under Writing, list every post
+      for(const p of [...POSTS].sort(byDateDesc)){
+        const s = el('li','sub'); s.innerHTML = `<a href="#post-${p.slug}" data-open="${p.slug}">${p.title}</a>`; ol.appendChild(s);
+      }
+    }
+  }
+  const colo = el('li','lead'); colo.innerHTML = `<a href="#/colophon">Colophon</a>`; ol.appendChild(colo);
+  const adm = el('li','sub'); adm.innerHTML = `<a href="#admin" class="faded" style="opacity:.4">◆</a>`; ol.appendChild(adm); // discreet admin link
+}
+function renderWriting(){
+  const box = $('#writing-list'); box.innerHTML='';
+  for(const p of [...POSTS].sort(byDateDesc)){                 // newest first
+    const a = el('article','post'); a.id = 'post-'+p.slug;     // id lets us link/scroll to it
+    // The .head is always visible; the .body is hidden by CSS until the article gets class "open".
+    a.innerHTML = `
+      <div class="head">
+        <span class="title">${p.title}</span>
+        <span class="permalink" data-perma="${p.slug}" title="copy link">☞</span>
+        <div class="mono-date">${p.date}</div>
+        <p class="preview">${p.preview||''}</p>
+      </div>
+      <div class="body">${p.cover?`<img class="cover" src="${p.cover}" alt="">`:''}${p.body||''}</div>`;
+    box.appendChild(a);
+  }
+}
+function renderListening(){
+  const ul = $('#listening-list'); ul.innerHTML='';
+  for(const m of LISTENING){
+    // build the line piece by piece; the (cond ? ... : '') bits add the note/link only if present.
+    const li = el('li'); li.innerHTML = `<span class="album">${m.album}</span> — ${m.artist}` +
+      (m.note?` <span class="faded">· ${m.note}</span>`:'') + (m.url?` <a href="${m.url}">↗</a>`:'');
+    ul.appendChild(li);
+  }
+}
+function renderPlates(){
+  const box = $('#plates-list'); box.innerHTML='';
+  for(const p of PLATES){
+    const d = el('div','plate'); d.innerHTML = `<img src="${p.src}" alt="${p.caption||''}">` +
+      (p.caption?`<div class="cap">${p.caption}${p.date?` · ${p.date}`:''}</div>`:'');
+    d.querySelector('img').addEventListener('click',()=>openLightbox(p.src)); // click photo → lightbox
+    box.appendChild(d);
+  }
+}
+function renderLinks(){
+  const ul = $('#links-list'); ul.innerHTML='';
+  for(const l of LINKS){
+    const li = el('li'); li.innerHTML = `<a href="${l.url}">${l.title}</a>` + (l.note?` <span class="note">— ${l.note}</span>`:'');
+    ul.appendChild(li);
+  }
+}
+function renderAll(){ renderContents(); renderWriting(); renderListening(); renderPlates(); renderLinks(); }
+renderAll(); // do it once on load
+
+/* ---------- routing: the long-scroll "home" vs the standalone colophon "page" ----------
+   We use the URL hash. Page routes start with "#/" (e.g. #/colophon) so they never clash
+   with in-page anchors (#writing) or post links (#post-…), which stay bare. */
+function showRoute(){
+  const onColophon = location.hash.startsWith('#/colophon');
+  $('#home').style.display = onColophon ? 'none' : '';          // hide/show the whole home block
+  $('#page-colophon').style.display = onColophon ? 'block' : 'none';
+  if(onColophon) window.scrollTo(0,0);
+}
+addEventListener('hashchange', showRoute); // re-run whenever the hash changes (link click / back button)
+showRoute();                               // and once on load
+
+/* ---------- interactions: open posts, copy links, lightbox, back-to-top, easter egg ---------- */
+function openPost(slug){
+  const a = document.getElementById('post-'+slug);
+  if(a){ a.classList.add('open'); a.scrollIntoView({behavior:'smooth',block:'start'}); }
+}
+// One click listener on the whole document ("event delegation") handles every post,
+// even ones added later — cheaper than attaching a listener to each card.
+document.addEventListener('click', e=>{
+  const head = e.target.closest('.post .head');                       // clicked a post header?
+  if(head && !e.target.closest('.permalink')){ head.parentElement.classList.toggle('open'); } // toggle open/closed
+  const perma = e.target.closest('[data-perma]');                     // clicked the ☞ permalink?
+  if(perma){ const slug=perma.dataset.perma;
+    navigator.clipboard?.writeText(location.origin+location.pathname+'#post-'+slug); // copy the link
+    perma.textContent='✓'; setTimeout(()=>perma.textContent='☞',900); }              // brief ✓ feedback
+  const open = e.target.closest('[data-open]');                       // clicked a Contents post link?
+  if(open){ e.preventDefault(); openPost(open.dataset.open); }        // expand + scroll to it
+});
+// If someone arrives with a #post-… link, open that post on load.
+if(location.hash.startsWith('#post-')) openPost(location.hash.slice(6));
+
+// lightbox: show the clicked photo full-screen; click anywhere to close.
+function openLightbox(src){ const lb=$('#lightbox'); lb.querySelector('img').src=src; lb.style.display='flex'; }
+$('#lightbox').addEventListener('click',()=> $('#lightbox').style.display='none');
+
+// back-to-top button: scroll to the contents; only show it after scrolling down a bit.
+const totop = $('#totop');
+totop.addEventListener('click',()=> $('#contents').scrollIntoView({behavior:'smooth'}));
+addEventListener('scroll',()=> totop.classList.toggle('show', scrollY>600));
+
+// easter egg: click the masthead ornament → toggle the hidden printer's mark.
+$('#ornament').addEventListener('click',()=>{ const m=$('#printmark'); m.style.display = m.style.display==='block'?'none':'block'; });
+
+/* ---------- admin: crypto (built-in Web Crypto API, no libraries) ----------
+   Your GitHub token is committed to this file ONLY in encrypted form (CONFIG.TOKEN_CIPHER).
+   PBKDF2 turns your passphrase into a key; AES-GCM uses that key to decrypt the token.
+   Wrong passphrase → decryption throws an error → the editor stays locked. */
+// turn base64 text back into raw bytes
+const b64ToBuf = b64 => Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+async function deriveKey(pass, salt){
+  // import the passphrase as raw key material, then stretch it into an AES key.
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:250000, hash:'SHA-256'}, // 250k rounds = slow to brute-force
+    km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function decryptToken(pass){
+  if(!CONFIG.TOKEN_CIPHER) throw new Error('No token configured. Run encrypt-token.html and paste into CONFIG.TOKEN_CIPHER.');
+  const {salt,iv,ct} = CONFIG.TOKEN_CIPHER;                  // salt+iv are public; only the passphrase is secret
+  const key = await deriveKey(pass, b64ToBuf(salt));
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64ToBuf(iv)}, key, b64ToBuf(ct));
+  return new TextDecoder().decode(pt);                       // throws on wrong passphrase → editor stays locked
+}
+
+/* ---------- admin: reveal the panel when the URL is #admin ---------- */
+let TOKEN = null;                                            // holds the decrypted token in memory only
+function revealAdmin(){ $('#admin').classList.add('reveal'); $('#admin').scrollIntoView(); }
+if(location.hash==='#admin') revealAdmin();
+addEventListener('hashchange',()=>{ if(location.hash==='#admin') revealAdmin(); });
+
+// Unlock button: try to decrypt; on success swap the lock screen for the editor.
+$('#unlock').addEventListener('click', async ()=>{
+  try{
+    TOKEN = await decryptToken($('#passphrase').value);
+    $('#lock').style.display='none'; $('#editor').style.display='block';
+    populateExisting();
+  }catch(err){ msg('Wrong passphrase or no token configured.', true); }
+});
+// Disconnect: forget the token and re-lock.
+$('#disconnect').addEventListener('click',()=>{ TOKEN=null; $('#editor').style.display='none'; $('#lock').style.display='block'; $('#passphrase').value=''; });
+
+/* ---------- admin: the editor (metadata fields + body toolbar + live preview) ---------- */
+// turn a title into a url-safe slug: lowercase, spaces/symbols → hyphens.
+const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+// auto-fill the slug from the title until the user edits the slug themselves.
+$('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $('#f-slug').value = slugify(e.target.value); });
+$('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
+$('#f-date').value = new Date().toISOString().slice(0,10);   // default date = today (YYYY-MM-DD)
+
+const body = $('#f-body');
+// Insert text around the current selection in the textarea (how the toolbar formats text).
+function wrapSelection(before, after){
+  const s=body.selectionStart, e=body.selectionEnd, v=body.value; // s,e = selection start/end positions
+  body.value = v.slice(0,s) + before + v.slice(s,e) + after + v.slice(e); // rebuild the text with wrappers
+  body.focus(); body.selectionStart=s+before.length; body.selectionEnd=e+before.length; // keep selection sensible
+  syncPreview();
+}
+// Wire every toolbar button based on its data-* attribute.
+document.querySelectorAll('.toolbar button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    if(b.dataset.tag){ wrapSelection(`<${b.dataset.tag}>`,`</${b.dataset.tag}>`); }                 // simple <tag></tag>
+    else if(b.dataset.wrap!=null){ const [a,c=''] = b.dataset.wrap.replace(/\\n/g,'\n').split('|'); wrapSelection(a,c); } // template, | = cursor
+    else if('link' in b.dataset){ const u=prompt('URL:'); if(u) wrapSelection(`<a href="${u}">`,`</a>`); }
+    else if('img' in b.dataset){ const u=prompt('Image URL:'); if(u) wrapSelection(`<img src="${u}" alt="">`,''); }
+  });
+});
+// Live preview: whatever HTML is in the textarea is mirrored into the preview box as you type.
+function syncPreview(){ $('#preview').innerHTML = body.value; }
+body.addEventListener('input', syncPreview);
+
+// Fill the "edit existing" dropdown with current posts.
+function populateExisting(){
+  const sel = $('#existing'); sel.innerHTML = '<option value="">— new post —</option>';
+  for(const p of POSTS){ const o=el('option'); o.value=p.slug; o.textContent=p.title; sel.appendChild(o); }
+}
+// Picking a post loads its fields into the editor; picking "new post" clears them.
+$('#existing').addEventListener('change', e=>{
+  const p = POSTS.find(x=>x.slug===e.target.value);
+  if(!p){ ['title','slug','preview','cover'].forEach(f=>$('#f-'+f).value=''); body.value=''; syncPreview(); return; }
+  $('#f-title').value=p.title; $('#f-slug').value=p.slug; $('#f-slug').dataset.touched='1';
+  $('#f-date').value=p.date; $('#f-preview').value=p.preview||''; $('#f-cover').value=p.cover||'';
+  body.value=p.body||''; syncPreview();
+});
+
+/* ---------- admin: publish to GitHub via its REST API ----------
+   Steps: read the live index.html, swap in the updated POSTS list, write it back as a commit.
+   GitHub Pages then redeploys automatically. */
+function msg(t, err){ const m=$('#msg'); m.textContent=t; m.style.color = err?'#7c1f1f':'#1a1a1a'; } // status line
+// GitHub wants file contents base64-encoded, and this site has non-ASCII chars (— ★ ☞),
+// so we encode UTF-8 safely. ponytail: escape/unescape are deprecated but universal; swap for TextEncoder chunking if it ever breaks.
+const utf8ToB64 = s => btoa(unescape(encodeURIComponent(s)));
+const b64ToUtf8 = b => decodeURIComponent(escape(atob(b)));
+
+// Small wrapper around fetch() that adds the auth header and turns HTTP errors into thrown errors.
+async function gh(path, opts={}){
+  const r = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/${path}`, {
+    ...opts, headers:{ Authorization:`Bearer ${TOKEN}`, Accept:'application/vnd.github+json', ...(opts.headers||{}) }});
+  if(r.status===401||r.status===403) throw new Error('Token rejected (bad/expired/rate-limited).');
+  if(!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0,140)}`);
+  return r;
+}
+
+async function publish(){
+  if(!TOKEN) return msg('Unlock first.', true);
+  // 1. Gather the form into a post object.
+  const post = {
+    slug: $('#f-slug').value || slugify($('#f-title').value),
+    title: $('#f-title').value.trim(),
+    date: $('#f-date').value,
+    preview: $('#f-preview').value.trim(),
+    body: body.value,
+    cover: $('#f-cover').value.trim() || null
+  };
+  if(!post.title || !post.slug) return msg('Title and slug are required.', true);
+
+  // Try twice: if someone else commits between our read and write, GitHub rejects the
+  // write (a "409 conflict"); we re-read the latest file and try once more.
+  for(let attempt=0; attempt<2; attempt++){
+    try{
+      // 2. Read the current index.html (we need its text AND its sha = GitHub's version id).
+      msg('Fetching current file…');
+      const cur = await (await gh(`contents/index.html?ref=${CONFIG.BRANCH}`)).json();
+      const file = b64ToUtf8(cur.content.replace(/\n/g,''));   // decode GitHub's base64 back to text
+
+      // 3. Build the new POSTS list (this post first, drop any old copy with same slug) and
+      //    JSON.stringify it — that safely escapes quotes/backticks/newlines in your post bodies.
+      const next = [post, ...POSTS.filter(p=>p.slug!==post.slug)].sort(byDateDesc);
+      const block = `// === POSTS_START ===\nconst POSTS = ${JSON.stringify(next,null,2)};\n// === POSTS_END ===`;
+      // 4. Find the old POSTS block (between the markers) and replace it with the new one.
+      if(!/\/\/ === POSTS_START ===[\s\S]*?\/\/ === POSTS_END ===/.test(file))
+        return msg('Could not find POSTS markers in the live file.', true);
+      const updated = file.replace(/\/\/ === POSTS_START ===[\s\S]*?\/\/ === POSTS_END ===/, block);
+
+      // 5. Write the file back as a commit (PUT), passing the sha so GitHub knows which version we edited.
+      msg('Publishing…');
+      await gh('contents/index.html', { method:'PUT', body: JSON.stringify({
+        message:`new post: ${post.title}`, content: utf8ToB64(updated), sha: cur.sha, branch: CONFIG.BRANCH })});
+
+      msg('Published — live in about a minute.');
+      $('#reload').style.display='inline-block';
+      return;
+    }catch(err){
+      if(/409/.test(err.message) && attempt===0){ msg('Conflict, retrying…'); continue; } // retry once on conflict
+      return msg('Failed: '+err.message, true);
+    }
+  }
+}
+$('#publish').addEventListener('click', publish);
+$('#reload').addEventListener('click',()=>location.reload());
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!-- Throwaway. Open locally, encrypt your GitHub token, paste the JSON into index.html CONFIG.TOKEN_CIPHER, then delete this file. -->
+<!-- The token is NEVER committed in plaintext. Only the ciphertext (useless without your passphrase) goes into index.html. -->
+<meta charset="utf-8">
+<title>encrypt token</title>
+<style>body{font:16px system-ui;max-width:640px;margin:40px auto;padding:0 16px}input,textarea{width:100%;padding:8px;margin:6px 0 16px;font:14px monospace}button{padding:8px 16px}#out{white-space:pre-wrap;background:#f4f1e8;padding:12px;border:1px solid #ccc}</style>
+
+<h2>Encrypt GitHub token (option B)</h2>
+<p>1. Make a <b>fine-grained PAT</b> scoped to <b>only your site repo</b>, permission <b>Contents: Read and write</b>. Nothing else.<br>
+2. Paste it below, pick a <b>strong passphrase</b> (this is your only protection — the ciphertext is public).</p>
+
+<label>GitHub token</label><input id="token" placeholder="github_pat_…">
+<label>Passphrase (strong!)</label><input id="pass" placeholder="a long passphrase you'll remember">
+<button id="go">Encrypt</button>
+
+<h3>Paste this into CONFIG.TOKEN_CIPHER</h3>
+<div id="out">…</div>
+
+<script>
+const bufToB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+async function deriveKey(pass, salt){
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:250000, hash:'SHA-256'},
+    km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+document.getElementById('go').onclick = async () => {
+  const token = document.getElementById('token').value.trim();
+  const pass = document.getElementById('pass').value;
+  if(!token || !pass) return alert('Need both fields.');
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pass, salt);
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(token));
+  // self-check: decrypt right back and assert it matches
+  const back = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct));
+  const ok = back === token;
+  document.getElementById('out').textContent =
+    (ok ? '' : '⚠ round-trip FAILED — do not use\n\n') +
+    JSON.stringify({ salt: bufToB64(salt), iv: bufToB64(iv), ct: bufToB64(ct) });
+};
+</script>
