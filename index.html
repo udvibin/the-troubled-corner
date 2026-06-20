@@ -48,6 +48,8 @@
      (It could instead be embedded here as base64 to keep one file, but a separate file stays
      readable and cacheable.) */
   @font-face{ font-family:"Royal"; src:url("fonts/RoyalInitialen.ttf") format("truetype"); font-display:swap }
+  /* second decorative initial set (public-domain illuminated). Now wired so a post can use either. */
+  @font-face{ font-family:"Yinit"; src:url("fonts/Yinit.otf") format("opentype"); font-display:swap }
 
   /* box-sizing:border-box = padding/border count INSIDE an element's width,
      so widths stay predictable. The * selects every element. Standard first line of any CSS. */
@@ -130,33 +132,60 @@
   .fold-body{ display:none; padding-bottom:1.8rem }
   .fold.open>.fold-body{ display:block }
 
-  /* contents / index list */
-  .contents ol{ list-style:none; padding:0; margin:0 }   /* list-style:none removes the number bullets */
-  .contents li{ padding:.18rem 0 }
-  .contents .lead{ font-variant:small-caps; letter-spacing:.1em }
-  .contents .sub{ padding-left:1.4rem; font-size:.95em }
-  /* ::before = a pseudo-element: CSS inserts the ☞ glyph before each sub-item without it being in the HTML */
-  .contents .sub::before{ content:"☞ "; color:var(--oxblood) }
+  /* slim section nav — a quiet centred row, the dated stream does the talking */
+  .nav{ text-align:center; margin:1.4rem auto 2.6rem; line-height:2.1 }
+  .nav a{ font-family:"IM Fell DW Pica",serif; color:var(--oxblood); font-size:1.08rem; padding:0 .1rem }
+  .nav a:hover{ text-decoration:underline }
+  .nav .dot{ color:var(--faded); opacity:.55; margin:0 .55rem }
+  .nav .adm{ opacity:.32; margin-left:.7rem }      /* the discreet writing-desk diamond */
 
   /* about / welcome block */
   .about{ border-left:2px solid var(--oxblood); padding-left:1.3rem }
-  /* ::first-letter = style just the first letter → the big drop cap. float:left lets text wrap around it. */
-  .dropcap::first-letter{ font-family:"Royal",serif; float:left; font-size:3.6rem;
-    line-height:.72; margin:.06rem .16em 0 0; color:var(--oxblood);
+  /* DROP CAPS. Put class "dropcap" on ANY paragraph and its first letter becomes a drop cap —
+     so a post can have several, anywhere (gwern-style), not just the opening one. Add "yinit" for
+     the second initials face. font-size sets how many lines it spans (~3); line-height + the
+     negative bottom margin pull the wrapping text up snug; the top margin sits it on the baseline.
+     These are the two numbers to nudge if a cap floats too high/low or crowds the text. */
+  /* Values tuned in dropcap-tuner.html. The big negative margin-bottom crops the font's hollow
+     lower em-box so the text sits right under the cap; margin-top aligns the cap's top to the text. */
+  .dropcap::first-letter{ font-family:"Royal",serif; float:left; font-size:7.1rem;
+    line-height:1.09; margin:.4rem .1em -2.8rem 0; color:var(--oxblood); font-weight:400;
     /* faint letterpress emboss: a pale highlight below + a darker press above */
     text-shadow:0 1px 0 rgba(255,255,255,.45), 0 -1px 0 rgba(0,0,0,.12) }
+  /* the Yinit face draws heavier/illustrated, so it wants slightly different sizing + offsets. */
+  .dropcap.yinit::first-letter{ font-family:"Yinit",serif; font-size:6rem; line-height:1.19; margin:.08rem .1em -2.65rem 0 }
 
   /* writing (blog posts) */
   article.post{ border-bottom:1px solid var(--hairline); padding:1.1rem 0 }
   .post .head{ cursor:pointer }
-  .post .title{ font-family:"IM Fell DW Pica",serif; font-size:1.45rem; color:var(--ink) }
+  .post .title{ font-family:"IM Fell DW Pica",serif; font-size:1.55rem; color:var(--ink) }
   .post:hover .title{ color:var(--oxblood) }
-  .post .preview{ color:var(--faded); margin:.25rem 0 0 }
+  /* date sits on its own line under the title (rotational-style), not jammed beside it */
+  .post .head .mono-date{ display:block; margin:.2rem 0 0 }
+  .post .preview{ color:var(--faded); margin:.35rem 0 0 }
   /* A post body is hidden until its article also has the class "open" (toggled by JS on click). */
   .post .body{ display:none; max-width:var(--measure); margin-top:1rem }
   .post.open .body{ display:block }
   .post .body img{ max-width:100%; height:auto }
   .post .cover{ width:100%; margin:.6rem 0 1rem; filter:saturate(.92) }
+  /* blockquote: an oxblood side-rule + faded text (upright, not italic — that was disliked). */
+  .post .body blockquote, #preview blockquote{ border-left:2px solid var(--oxblood);
+    margin:1.4rem 0; padding:.15rem 0 .15rem 1.2rem; color:var(--faded); font-style:normal }
+  /* in-post headings: one font (Fell roman), no small-caps, no italic. h2 oxblood, h3 a step down. */
+  .post .body h2{ font-family:"IM Fell DW Pica",serif; font-weight:400; font-style:normal;
+    color:var(--oxblood); font-size:1.75rem; letter-spacing:.01em; margin:1.8rem 0 .4rem }
+  /* h3 dropped from the toolbar (too close to body text). If you still type ### it renders here as a
+     clear subhead: oxblood + small-caps so it never reads as a regular paragraph. */
+  .post .body h3{ font-family:"IM Fell DW Pica SC",serif; font-weight:400; font-style:normal;
+    color:var(--oxblood); font-size:1.2rem; letter-spacing:.06em; margin:1.6rem 0 .3rem }
+  /* inline figures: float an image to one side and let the text wrap around it (gwern-style).
+     Put a <figure class="fig fig-left"> (or fig-right) before a paragraph; the text flows beside it. */
+  .post .body figure.fig{ margin:.2rem 0 1rem }
+  .post .body figure.fig img{ width:100%; display:block; height:auto; filter:saturate(.94) }
+  .post .body figure.fig figcaption{ font-style:italic; color:var(--faded); font-size:.82em; text-align:center; margin-top:.4rem }
+  .post .body figure.fig-left{ float:left;  width:44%; margin:.3rem 1.5rem .8rem 0 }
+  .post .body figure.fig-right{ float:right; width:44%; margin:.3rem 0 .8rem 1.5rem }
+  .post .body::after{ content:""; display:block; clear:both }   /* contain the floats so the card doesn't collapse */
   .tag{ font-variant:small-caps; letter-spacing:.08em; font-size:.72em; color:var(--paper);
     background:var(--oxblood); padding:.08rem .5rem; margin-left:.5rem; vertical-align:.15em }
   .permalink{ cursor:pointer; color:var(--oxblood); margin-left:.4rem; opacity:.5 }
@@ -198,24 +227,66 @@
     align-items:center; justify-content:center; cursor:zoom-out; z-index:50; padding:30px }
   #lightbox img{ max-width:92vw; max-height:92vh; box-shadow:0 0 40px rgba(0,0,0,.6) }
 
-  /* admin editor (hidden by default; revealed via #admin) */
-  #admin{ display:none; border-top:2px solid var(--oxblood); margin-top:4rem; padding-top:1.4rem }
-  #admin.reveal{ display:block }
-  #admin input,#admin textarea,#admin select{ width:100%; font-family:inherit; font-size:1rem;
-    background:#fbf9f3; border:1px solid var(--hairline); padding:.5rem; margin:.25rem 0 .8rem; color:var(--ink) }
-  #admin textarea{ min-height:220px; font-family:"Consolas",monospace; font-size:.92rem }
-  #admin button{ font-family:"IM Fell DW Pica",serif; font-size:1rem; background:var(--oxblood);
-    color:var(--paper); border:0; padding:.5rem 1.1rem; cursor:pointer; margin:.2rem .3rem .2rem 0 }
-  #admin button.ghost{ background:transparent; color:var(--oxblood); border:1px solid var(--oxblood) }
-  .toolbar button{ background:#fbf9f3; color:var(--ink); border:1px solid var(--hairline); padding:.3rem .5rem; font-size:.85rem }
-  #preview{ border:1px solid var(--hairline); padding:1rem; background:#fbf9f3; margin-top:.6rem }
-  .label{ font-variant:small-caps; letter-spacing:.08em; color:var(--faded); font-size:.85em }
-  #msg{ margin:.6rem 0; font-style:italic }
+  /* ---- ADMIN / writing desk ----
+     #admin is hidden normally. Visiting #admin adds .admin-mode to <body>: that hides every
+     top-level site block (masthead, stars, main, footer) and shows ONLY #admin full-screen.
+     Leaving #admin (any other hash) reverses it. A hash "route" with zero URL pages. */
+  #admin{ display:none }
+  body.admin-mode>header.mast, body.admin-mode>.stars,
+  body.admin-mode>main, body.admin-mode>footer{ display:none }
+  /* wider than the 680 reading column so the cheatsheet fits beside the writing area */
+  body.admin-mode>#admin{ display:block; max-width:900px; margin:0 auto; padding:2rem 0 5rem }
+
+  .topline{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.4rem }
+  /* form fields. font-size:16px stops iOS Safari zooming when you tap an input. */
+  #admin input,#admin textarea,#admin select{ width:100%; font-family:inherit; font-size:16px; color:var(--ink);
+    background:#fbf9f3; border:1px solid var(--hairline); padding:.6rem; margin:.3rem 0 0; border-radius:3px }
+  #admin textarea{ min-height:300px; font-family:"Consolas",ui-monospace,monospace; font-size:15px; line-height:1.6; margin-top:0 }
+  .row{ display:flex; gap:1rem; flex-wrap:wrap } .row>div{ flex:1 1 180px }
+  .label{ display:block; font-variant:small-caps; letter-spacing:.08em; color:var(--faded); font-size:.85em; margin:1rem 0 0 }
+
+  /* TOOLBAR — small tactile "keys": ivory fill, hairline border, oxblood on hover. Clear that they're buttons. */
+  .toolbar{ display:flex; flex-wrap:wrap; gap:.3rem; align-items:center; padding:.3rem 0 .55rem }
+  .toolbar button{ font-family:"IM Fell DW Pica",serif; font-size:.95rem; line-height:1; min-height:34px;
+    color:var(--ink); background:#fbf9f3; border:1px solid var(--hairline); border-radius:4px; padding:.36rem .62rem;
+    cursor:pointer; transition:color .12s, border-color .12s, background .12s }
+  .toolbar button:hover{ color:var(--oxblood); border-color:var(--oxblood); background:#fff }
+  .toolbar button:active{ transform:translateY(.5px) }
+  .toolbar .grp{ display:inline-flex; gap:.3rem }     /* keep a group together when the bar wraps */
+  .toolbar .sep{ width:1px; align-self:stretch; margin:.2rem .3rem; background:var(--hairline) }
+  .toolbar .undo{ margin-left:auto; color:var(--faded) }
+
+  /* writing area + pinned cheatsheet, side by side */
+  .editor-row{ display:flex; gap:1.2rem; align-items:flex-start }
+  .editor-row textarea{ flex:1 }
+  .cheat{ flex:0 0 200px; position:sticky; top:1rem; align-self:flex-start; font-size:.82rem; color:var(--faded);
+    border:1px solid var(--hairline); border-radius:4px; background:#fbf9f3; padding:.8rem 1rem }
+  .cheat-h{ font-variant:small-caps; letter-spacing:.1em; color:var(--oxblood); margin-bottom:.4rem }
+  .cheat dl{ margin:0 }
+  .cheat dt{ font-family:Consolas,ui-monospace,monospace; color:var(--ink); font-size:.78rem; margin-top:.42rem }
+  .cheat dd{ margin:0; color:var(--faded); font-size:.74rem }
+  .cheat-note{ margin-top:.8rem; font-style:italic }
+
+  .actions{ margin-top:1.4rem; display:flex; gap:.6rem; flex-wrap:wrap; align-items:center }
+  .btn{ font-family:"IM Fell DW Pica",serif; font-size:1.05rem; background:var(--oxblood); color:var(--paper);
+    border:0; padding:.6rem 1.4rem; cursor:pointer; border-radius:2px }
+  .btn.ghost{ background:transparent; color:var(--oxblood); border:1px solid var(--oxblood) }
+  #msg{ font-style:italic; margin-left:.2rem }
+  /* preview box capped at the real reading width so it matches the published post exactly */
+  #preview{ border:1px solid var(--hairline); background:#fbf9f3; padding:1.2rem 1.4rem; margin-top:.4rem; border-radius:2px; max-width:var(--measure) }
+  #preview .post{ border:0; padding:0 }
+  #preview .post .body{ display:block }     /* always show the body in the preview */
 
   /* @media = apply these rules ONLY when the screen is 600px wide or less (phones). */
   @media (max-width:600px){
     body{ font-size:17px; padding:0 16px }
     header.mast{ padding:3rem 0 1rem }
+    .toolbar .undo{ margin-left:0 }   /* on phones, let Undo wrap instead of stranding at the right */
+    /* floated figures get cramped on a narrow screen — make them full-width instead. */
+    .post .body figure.fig-left, .post .body figure.fig-right{ float:none; width:100%; margin:1rem 0 }
+    /* the writing area + cheatsheet stack on phones */
+    .editor-row{ flex-direction:column }
+    .cheat{ position:static; flex-basis:auto; width:100% }
   }
 </style>
 </head>
@@ -237,7 +308,7 @@ const POSTS = [
     "title": "Setting type",
     "date": "2026-06-16",
     "preview": "A first mark on the page.",
-    "body": "<p>This is where the writing goes. Bodies are plain HTML — paragraphs, <em>emphasis</em>, links, images, whatever the page allows.</p><p>Nothing fancy. Just a quiet place to think out loud.</p>",
+    "body": ":dropcap: This is where the writing goes. Bodies are now *Markdown* — paragraphs, **emphasis**, [links](https://example.com), images, the usual.\n\nNothing fancy. Just a quiet place to think out loud.",
     "cover": null
   }
 ];
@@ -268,7 +339,7 @@ const CONFIG = {
 
 <!--
   ============================ STRUCTURE ============================
-  The visible page. Notice the EMPTY containers like <ol id="contents-list">
+  The visible page. Notice the EMPTY containers like <nav id="nav">
   and <div id="writing-list"> — they're filled in by the JS at the bottom,
   reading from the DATA arrays above. That's why an `id` matters: JS finds
   elements by their id.
@@ -295,12 +366,9 @@ const CONFIG = {
      when you visit the colophon "page", and shows it again otherwise. -->
 <main class="wrap">
 
-  <!-- CONTENTS: the persistent menu, always visible. renderContents() fills it; clicking a
-       link opens that one fold below. -->
-  <section id="contents" class="contents">
-    <h2 class="sec">Contents</h2>
-    <ol id="contents-list"></ol>
-  </section>
+  <!-- NAV: a slim horizontal menu (rotational-style). renderNav() fills it; clicking a link opens
+       that one fold below. The dated stream itself does the talking — no big index to land on. -->
+  <nav id="nav" class="nav" aria-label="sections"></nav>
 
   <!-- Each section below is a FOLD: collapsed to just its heading until opened (by clicking the
        heading, or its Contents link). CSS hides .fold-body until the .fold has class "open"; the
@@ -392,7 +460,7 @@ const CONFIG = {
     <a href="https://www.fromjason.xyz/">From Jason</a> and <a href="https://near.blog/">near.blog</a>,
     which showed that a personal site can just be calm and yours.</p>
 
-      <p style="margin-top:2rem"><a href="#contents">☞ back to the index</a></p>
+      <p style="margin-top:2rem"><a href="#nav">☞ back to the top</a></p>
     </div>
   </section>
 
@@ -404,48 +472,89 @@ const CONFIG = {
   <div><span id="year"></span> · <a href="mailto:you@example.com">email</a> · <a href="#">github</a></div>
 </footer>
 
-<!-- ADMIN: the hidden in-site editor. Stays out of view until you visit #admin. -->
+<!-- ADMIN: the writing desk. It's still in this one file, but the #admin route hides the whole
+     site and shows ONLY this panel full-screen (see the .admin-mode CSS + router JS below). -->
 <section id="admin" class="wrap">
-  <h2 class="sec">Admin</h2>
-  <!-- The lock screen: shown until the passphrase decrypts the token. -->
-  <div id="lock">
-    <p class="faded">Enter passphrase to unlock the editor.</p>
-    <input type="password" id="passphrase" placeholder="passphrase" autocomplete="off">
-    <button id="unlock">Unlock</button>
+  <div class="topline">
+    <h2 class="sec" style="margin:0">the writing desk</h2>
+    <a href="#nav">☞ back to the site</a>
   </div>
-  <!-- The editor itself: hidden until unlocked. -->
-  <div id="editor" style="display:none">
-    <span class="label">Edit existing</span>
-    <select id="existing"><option value="">— new post —</option></select>
-    <span class="label">Title</span><input id="f-title">
-    <span class="label">Slug</span><input id="f-slug">
-    <span class="label">Date</span><input type="date" id="f-date">
-    <span class="label">Preview</span><input id="f-preview">
-    <span class="label">Cover URL (optional)</span><input id="f-cover">
-    <span class="label">Body</span>
-    <!-- Toolbar buttons. Each carries instructions in data-* attributes that the JS reads:
-         data-tag wraps the selection in <tag></tag>; data-wrap uses a custom template (| = cursor). -->
-    <div class="toolbar">
-      <button data-tag="strong">B</button>
-      <button data-tag="em">i</button>
-      <button data-wrap="<h2>|</h2>">H2</button>
-      <button data-wrap="<h3>|</h3>">H3</button>
-      <button data-wrap="<ul>\n  <li>|</li>\n</ul>">• list</button>
-      <button data-wrap="<ol>\n  <li>|</li>\n</ol>">1. list</button>
-      <button data-tag="blockquote">❝</button>
-      <button data-tag="code">code</button>
-      <button data-link>link</button>
-      <button data-img>img</button>
-      <button data-wrap="\n<hr>\n">— hr —</button>
-    </div>
-    <textarea id="f-body" placeholder="<p>Write HTML here…</p>"></textarea>
-    <span class="label">Live preview</span>
-    <div id="preview" class="dropcap"></div>
-    <div id="msg"></div>
-    <button id="publish">Publish</button>
-    <button id="reload" class="ghost" style="display:none">Reload</button>
-    <button id="disconnect" class="ghost">Disconnect</button>
+
+  <!-- metadata. No Date field: every post is dated today automatically. -->
+  <div class="row">
+    <div><span class="label">Title</span><input id="f-title" placeholder="a title…"></div>
+    <div><span class="label">Slug <span class="faded">(the link)</span></span><input id="f-slug" placeholder="auto from title"></div>
   </div>
+  <span class="label">Preview line <span class="faded">(shown collapsed, optional)</span></span>
+  <input id="f-preview" placeholder="one line shown before the post is expanded">
+  <span class="label">Cover image URL <span class="faded">(optional)</span></span>
+  <input id="f-cover" placeholder="https://…">
+
+  <!-- BODY: write in Markdown. Blank line = new paragraph. Buttons insert the syntax; the special
+       site bits (drop cap, floated figure) insert one-line directives the renderer understands. -->
+  <span class="label">Body <span class="faded">— Markdown</span></span>
+  <div class="toolbar">
+    <span class="grp">
+      <button data-wrap="**|**" title="Bold (Ctrl+B)"><b>B</b></button>
+      <button data-wrap="*|*" title="Italic (Ctrl+I)"><i>i</i></button>
+      <button data-wrap="`|`" title="Inline code">code</button>
+    </span><span class="sep"></span>
+    <span class="grp">
+      <button data-prefix="## " title="Heading">H2</button>
+      <button data-prefix="> " title="Quote">&#10077;</button>
+      <button data-prefix="- " title="Bullet list">•&nbsp;list</button>
+      <button data-prefix="1. " title="Numbered list">1.&nbsp;list</button>
+    </span><span class="sep"></span>
+    <span class="grp">
+      <button data-wrap="[|](url)" title="Link (Ctrl+K)">link</button>
+      <button data-wrap="![|](url)" title="Inline image">image</button>
+      <button data-fig="left" title="Image floated left, text wraps right">img&#9703;</button>
+      <button data-fig="right" title="Image floated right, text wraps left">img&#9704;</button>
+      <button data-md="hr" title="Divider">&mdash;&nbsp;hr&nbsp;&mdash;</button>
+    </span><span class="sep"></span>
+    <span class="grp">
+      <button data-cap="royal" title="Drop cap on this paragraph (Royal)">drop-cap</button>
+      <button data-cap="yinit" title="Drop cap on this paragraph (Yinit)">cap²</button>
+    </span>
+    <button class="undo" data-undo title="Undo (Ctrl+Z)">&#8630;&nbsp;undo</button>
+  </div>
+  <div class="editor-row">
+    <textarea id="f-body" placeholder="Write in Markdown.
+
+**bold**, *italic*, [link](url), ## Heading, > quote, - list.
+
+Blank line between paragraphs."></textarea>
+    <!-- a quick reference, pinned beside the writing area -->
+    <aside class="cheat">
+      <div class="cheat-h">cheatsheet</div>
+      <dl>
+        <dt>**bold**</dt>
+        <dt>*italic*</dt>
+        <dt>`code`</dt>
+        <dt>## Heading</dt>
+        <dt>&gt; quote</dt>
+        <dt>- bullet</dt>
+        <dt>1. number</dt>
+        <dt>[text](url)</dt>
+        <dt>![alt](url)</dt>
+        <dt>---</dt><dd>divider</dd>
+        <dt>:dropcap: text</dt><dd>drop cap</dd>
+        <dt>:fig-left: url | cap</dt><dd>float an image</dd>
+      </dl>
+      <div class="cheat-note">Blank line = new paragraph.</div>
+    </aside>
+  </div>
+
+  <span class="label">Live preview — exactly how it will look on the site</span>
+  <div id="preview"></div>
+
+  <div class="actions">
+    <button class="btn" id="publish">Publish</button>
+    <button class="btn ghost" id="clear">New / clear</button>
+    <span id="msg"></span>
+  </div>
+  <span class="label">Edit an existing post</span>
+  <select id="existing"><option value="">— new post —</option></select>
 </section>
 
 <!-- These two live outside everything because they float over the page (position:fixed). -->
@@ -470,19 +579,13 @@ const byDateDesc = (a,b)=> a.date<b.date?1:a.date>b.date?-1:0;
 document.getElementById('year').textContent = new Date().getFullYear();
 
 /* ---------- render: turn the DATA arrays into HTML on the page ---------- */
-function renderContents(){
-  const ol = $('#contents-list'); ol.innerHTML='';            // start empty
-  // each row links to a fold by id; data-fold tells the click handler which fold to open.
-  const secs = [['about','Welcome'],['writing','Writing'],['listening','Listening'],['plates','Plates'],['marginalia','Marginalia'],['admonitions','Admonitions'],['colophon','Colophon']];
-  for(const [id,name] of secs){                                // one row per fold
-    const li = el('li','lead'); li.innerHTML = `<a href="#${id}" data-fold="${id}">${name}</a>`; ol.appendChild(li);
-    if(id==='writing'){                                        // under Writing, list every post
-      for(const p of [...POSTS].sort(byDateDesc)){
-        const s = el('li','sub'); s.innerHTML = `<a href="#post-${p.slug}" data-open="${p.slug}">${p.title}</a>`; ol.appendChild(s);
-      }
-    }
-  }
-  const adm = el('li','sub'); adm.innerHTML = `<a href="#admin" class="faded" style="opacity:.4">◆</a>`; ol.appendChild(adm); // discreet admin link
+// Slim horizontal nav: just the sections, separated by a faded dot, plus the discreet ◆ writing desk.
+// The dated stream below carries the page; no big index of every post to scroll past.
+function renderNav(){
+  const secs = [['about','Welcome'],['writing','Writing'],['listening','Listening'],['plates','Plates'],['marginalia','Marginalia'],['colophon','Colophon']];
+  $('#nav').innerHTML =
+    secs.map(([id,name])=>`<a href="#${id}" data-fold="${id}">${name}</a>`).join('<span class="dot">·</span>')
+    + `<a href="#admin" class="adm" title="writing desk">◆</a>`;
 }
 function renderWriting(){
   const box = $('#writing-list'); box.innerHTML='';
@@ -493,10 +596,10 @@ function renderWriting(){
       <div class="head">
         <span class="title">${p.title}</span>
         <span class="permalink" data-perma="${p.slug}" title="copy link">☞</span>
-        <div class="mono-date">${p.date}</div>
-        <p class="preview">${p.preview||''}</p>
+        ${p.preview?`<p class="preview">${p.preview}</p>`:''}
+        <div class="mono-date">${fmtDate(p.date)}</div>
       </div>
-      <div class="body">${p.cover?`<img class="cover" src="${p.cover}" alt="">`:''}${p.body||''}</div>`;
+      <div class="body">${p.cover?`<img class="cover" src="${p.cover}" alt="">`:''}${mdToHtml(p.body)}</div>`;
     box.appendChild(a);
   }
 }
@@ -525,7 +628,53 @@ function renderLinks(){
     ul.appendChild(li);
   }
 }
-function renderAll(){ renderContents(); renderWriting(); renderListening(); renderPlates(); renderLinks(); }
+// text → HTML: blank line = new <p>, single newline = <br>; chunks that already start with a
+// block tag pass through untouched. The editor's live preview uses the identical function,
+// so what you preview is what renders.
+// Pretty date: "2026-06-20" → "Saturday, June 20, 2026". The +'T00:00' pins it to local
+// midnight so the weekday/day don't slip a day due to timezone. Shown in small-caps (CSS).
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+/* ---------- a tiny Markdown → HTML renderer (no library) ----------
+   You write plain, readable text; this turns it into the post HTML — and the editor's live
+   preview uses the SAME function, so preview === published. Supported, by design a small set:
+     **bold**  *italic*  `code`  [text](url)  ![alt](url)
+     ## Heading   ### Subheading   > quote   - bullet   1. number   ---  (divider)
+   Plus our own one-line directives for the site's special bits (inserted by toolbar buttons):
+     :dropcap: text        → drop-capped paragraph (Royal)      :dropcap2: text → (Yinit)
+     :fig-left: url | cap   → image floated left (text wraps)    :fig-right: …   → floated right
+   Raw HTML you paste is left untouched (escape hatch). Author-trusted, so no sanitising. */
+const RAWHTML = /^\s*<(p|div|figure|blockquote|ul|ol|table|hr|img|h[1-6]|pre)\b/i;
+function mdInline(t){                                  // inline marks, order matters (code/img/link before * marks)
+  return t
+    .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1">')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+}
+function mdBlock(b){
+  b = b.replace(/\s+$/,''); if(!b.trim()) return '';
+  if(RAWHTML.test(b)) return b;                                                   // raw HTML → as-is
+  let m;
+  if(m = b.match(/^:dropcap(2)?:\s*([\s\S]*)$/))                                   // drop-cap directive
+    return `<p class="dropcap${m[1]?' yinit':''}">${mdInline(m[2]).replace(/\n/g,'<br>')}</p>`;
+  if(m = b.match(/^:fig-(left|right):\s*(\S+)\s*(?:\|\s*([\s\S]*))?$/))            // floated figure directive
+    return `<figure class="fig fig-${m[1]}"><img src="${m[2]}" alt="">${m[3]?`<figcaption>${mdInline(m[3].trim())}</figcaption>`:''}</figure>`;
+  if(/^(-{3,}|\*{3,}|_{3,})$/.test(b.trim())) return '<hr>';                       // divider
+  if(m = b.match(/^(#{2,3})\s+([\s\S]*)$/)){ const t=m[1].length===2?'h2':'h3'; return `<${t}>${mdInline(m[2])}</${t}>`; }
+  if(/^>\s?/.test(b)) return `<blockquote>${mdInline(b.split('\n').map(l=>l.replace(/^>\s?/,'')).join('\n')).replace(/\n/g,'<br>')}</blockquote>`;
+  if(/^[-*]\s+/.test(b)) return `<ul>${b.split('\n').filter(l=>l.trim()).map(l=>`<li>${mdInline(l.replace(/^[-*]\s+/,''))}</li>`).join('')}</ul>`;
+  if(/^\d+\.\s+/.test(b)) return `<ol>${b.split('\n').filter(l=>l.trim()).map(l=>`<li>${mdInline(l.replace(/^\d+\.\s+/,''))}</li>`).join('')}</ol>`;
+  return `<p>${mdInline(b).replace(/\n/g,'<br>')}</p>`;                            // plain paragraph
+}
+function mdToHtml(md){ return (md||'').replace(/\r/g,'').split(/\n{2,}/).map(mdBlock).filter(Boolean).join('\n'); }
+
+function renderAll(){ renderNav(); renderWriting(); renderListening(); renderPlates(); renderLinks(); }
 renderAll(); // do it once on load
 
 /* ---------- accordion: each section is a fold; only one open at a time ----------
@@ -577,157 +726,153 @@ $('#lightbox').addEventListener('click',()=> $('#lightbox').style.display='none'
 
 // back-to-top button: scroll to the contents; only show it after scrolling down a bit.
 const totop = $('#totop');
-totop.addEventListener('click',()=> $('#contents').scrollIntoView({behavior:'smooth'}));
+totop.addEventListener('click',()=> scrollTo({top:0, behavior:'smooth'}));
 addEventListener('scroll',()=> totop.classList.toggle('show', scrollY>600));
 
 // easter egg: click the masthead ornament → toggle the hidden printer's mark.
 $('#ornament').addEventListener('click',()=>{ const m=$('#printmark'); m.style.display = m.style.display==='block'?'none':'block'; });
 
-/* ---------- admin: crypto (built-in Web Crypto API, no libraries) ----------
-   Your GitHub token is committed to this file ONLY in encrypted form (CONFIG.TOKEN_CIPHER).
-   PBKDF2 turns your passphrase into a key; AES-GCM uses that key to decrypt the token.
-   Wrong passphrase → decryption throws an error → the editor stays locked. */
-// turn base64 text back into raw bytes
-const b64ToBuf = b64 => Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
-async function deriveKey(pass, salt){
-  // import the passphrase as raw key material, then stretch it into an AES key.
-  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:250000, hash:'SHA-256'}, // 250k rounds = slow to brute-force
-    km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
-}
-async function decryptToken(pass){
-  if(!CONFIG.TOKEN_CIPHER) throw new Error('No token configured. Run encrypt-token.html and paste into CONFIG.TOKEN_CIPHER.');
-  const {salt,iv,ct} = CONFIG.TOKEN_CIPHER;                  // salt+iv are public; only the passphrase is secret
-  const key = await deriveKey(pass, b64ToBuf(salt));
-  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64ToBuf(iv)}, key, b64ToBuf(ct));
-  return new TextDecoder().decode(pt);                       // throws on wrong passphrase → editor stays locked
-}
-
-/* ---------- admin: reveal the panel when the URL is #admin ---------- */
-let TOKEN = null;                                            // holds the decrypted token in memory only
-function revealAdmin(){ $('#admin').classList.add('reveal'); $('#admin').scrollIntoView(); }
-if(location.hash==='#admin') revealAdmin();
-addEventListener('hashchange',()=>{ if(location.hash==='#admin') revealAdmin(); });
-
-// Unlock button: try to decrypt; on success swap the lock screen for the editor.
-$('#unlock').addEventListener('click', async ()=>{
-  try{
-    TOKEN = await decryptToken($('#passphrase').value);
-    $('#lock').style.display='none'; $('#editor').style.display='block';
-    populateExisting();
-  }catch(err){ msg('Wrong passphrase or no token configured.', true); }
-});
-// Disconnect: forget the token and re-lock.
-$('#disconnect').addEventListener('click',()=>{ TOKEN=null; $('#editor').style.display='none'; $('#lock').style.display='block'; $('#passphrase').value=''; });
-
-/* ---------- admin: the editor (metadata fields + body toolbar + live preview) ---------- */
-// turn a title into a url-safe slug: lowercase, spaces/symbols → hyphens.
-const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-// auto-fill the slug from the title until the user edits the slug themselves.
-$('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $('#f-slug').value = slugify(e.target.value); });
-$('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
-$('#f-date').value = new Date().toISOString().slice(0,10);   // default date = today (YYYY-MM-DD)
+/* ---------- the writing desk (#admin) ----------
+   A hash "route": when the URL is #admin, .admin-mode hides the site and shows only the editor. */
+function route(){ document.body.classList.toggle('admin-mode', location.hash==='#admin'); if(location.hash==='#admin') scrollTo(0,0); }
+addEventListener('hashchange', route); route();
 
 const body = $('#f-body');
-// Insert text around the current selection in the textarea (how the toolbar formats text).
-function wrapSelection(before, after){
-  const s=body.selectionStart, e=body.selectionEnd, v=body.value; // s,e = selection start/end positions
-  body.value = v.slice(0,s) + before + v.slice(s,e) + after + v.slice(e); // rebuild the text with wrappers
-  body.focus(); body.selectionStart=s+before.length; body.selectionEnd=e+before.length; // keep selection sensible
-  syncPreview();
-}
-// Wire every toolbar button based on its data-* attribute.
-document.querySelectorAll('.toolbar button').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    if(b.dataset.tag){ wrapSelection(`<${b.dataset.tag}>`,`</${b.dataset.tag}>`); }                 // simple <tag></tag>
-    else if(b.dataset.wrap!=null){ const [a,c=''] = b.dataset.wrap.replace(/\\n/g,'\n').split('|'); wrapSelection(a,c); } // template, | = cursor
-    else if('link' in b.dataset){ const u=prompt('URL:'); if(u) wrapSelection(`<a href="${u}">`,`</a>`); }
-    else if('img' in b.dataset){ const u=prompt('Image URL:'); if(u) wrapSelection(`<img src="${u}" alt="">`,''); }
-  });
-});
-// Live preview: whatever HTML is in the textarea is mirrored into the preview box as you type.
-function syncPreview(){ $('#preview').innerHTML = body.value; }
-body.addEventListener('input', syncPreview);
+const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
 
-// Fill the "edit existing" dropdown with current posts.
-function populateExisting(){
-  const sel = $('#existing'); sel.innerHTML = '<option value="">— new post —</option>';
-  for(const p of POSTS){ const o=el('option'); o.value=p.slug; o.textContent=p.title; sel.appendChild(o); }
-}
-// Picking a post loads its fields into the editor; picking "new post" clears them.
-$('#existing').addEventListener('change', e=>{
-  const p = POSTS.find(x=>x.slug===e.target.value);
-  if(!p){ ['title','slug','preview','cover'].forEach(f=>$('#f-'+f).value=''); body.value=''; syncPreview(); return; }
-  $('#f-title').value=p.title; $('#f-slug').value=p.slug; $('#f-slug').dataset.touched='1';
-  $('#f-date').value=p.date; $('#f-preview').value=p.preview||''; $('#f-cover').value=p.cover||'';
-  body.value=p.body||''; syncPreview();
-});
-
-/* ---------- admin: publish to GitHub via its REST API ----------
-   Steps: read the live index.html, swap in the updated POSTS list, write it back as a commit.
-   GitHub Pages then redeploys automatically. */
-function msg(t, err){ const m=$('#msg'); m.textContent=t; m.style.color = err?'#7c1f1f':'#1a1a1a'; } // status line
-// GitHub wants file contents base64-encoded, and this site has non-ASCII chars (— ★ ☞),
-// so we encode UTF-8 safely. ponytail: escape/unescape are deprecated but universal; swap for TextEncoder chunking if it ever breaks.
-const utf8ToB64 = s => btoa(unescape(encodeURIComponent(s)));
-const b64ToUtf8 = b => decodeURIComponent(escape(atob(b)));
-
-// Small wrapper around fetch() that adds the auth header and turns HTTP errors into thrown errors.
-async function gh(path, opts={}){
-  const r = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/${path}`, {
-    ...opts, headers:{ Authorization:`Bearer ${TOKEN}`, Accept:'application/vnd.github+json', ...(opts.headers||{}) }});
-  if(r.status===401||r.status===403) throw new Error('Token rejected (bad/expired/rate-limited).');
-  if(!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0,140)}`);
-  return r;
-}
-
-async function publish(){
-  if(!TOKEN) return msg('Unlock first.', true);
-  // 1. Gather the form into a post object.
-  const post = {
-    slug: $('#f-slug').value || slugify($('#f-title').value),
+// Gather the form into a post object. Date is ALWAYS today — there is no date field.
+function gather(){
+  return {
+    slug: $('#f-slug').value.trim() || slugify($('#f-title').value),
     title: $('#f-title').value.trim(),
-    date: $('#f-date').value,
+    date: new Date().toISOString().slice(0,10),
     preview: $('#f-preview').value.trim(),
     body: body.value,
     cover: $('#f-cover').value.trim() || null
   };
-  if(!post.title || !post.slug) return msg('Title and slug are required.', true);
-
-  // Try twice: if someone else commits between our read and write, GitHub rejects the
-  // write (a "409 conflict"); we re-read the latest file and try once more.
-  for(let attempt=0; attempt<2; attempt++){
-    try{
-      // 2. Read the current index.html (we need its text AND its sha = GitHub's version id).
-      msg('Fetching current file…');
-      const cur = await (await gh(`contents/index.html?ref=${CONFIG.BRANCH}`)).json();
-      const file = b64ToUtf8(cur.content.replace(/\n/g,''));   // decode GitHub's base64 back to text
-
-      // 3. Build the new POSTS list (this post first, drop any old copy with same slug) and
-      //    JSON.stringify it — that safely escapes quotes/backticks/newlines in your post bodies.
-      const next = [post, ...POSTS.filter(p=>p.slug!==post.slug)].sort(byDateDesc);
-      const block = `// === POSTS_START ===\nconst POSTS = ${JSON.stringify(next,null,2)};\n// === POSTS_END ===`;
-      // 4. Find the old POSTS block (between the markers) and replace it with the new one.
-      if(!/\/\/ === POSTS_START ===[\s\S]*?\/\/ === POSTS_END ===/.test(file))
-        return msg('Could not find POSTS markers in the live file.', true);
-      const updated = file.replace(/\/\/ === POSTS_START ===[\s\S]*?\/\/ === POSTS_END ===/, block);
-
-      // 5. Write the file back as a commit (PUT), passing the sha so GitHub knows which version we edited.
-      msg('Publishing…');
-      await gh('contents/index.html', { method:'PUT', body: JSON.stringify({
-        message:`new post: ${post.title}`, content: utf8ToB64(updated), sha: cur.sha, branch: CONFIG.BRANCH })});
-
-      msg('Published — live in about a minute.');
-      $('#reload').style.display='inline-block';
-      return;
-    }catch(err){
-      if(/409/.test(err.message) && attempt===0){ msg('Conflict, retrying…'); continue; } // retry once on conflict
-      return msg('Failed: '+err.message, true);
-    }
-  }
 }
-$('#publish').addEventListener('click', publish);
-$('#reload').addEventListener('click',()=>location.reload());
+// Build the same post card the site renders (so the preview is the real thing), shown expanded.
+function postHTML(p){
+  return `<article class="post open">
+    <div class="head"><span class="title">${p.title||'Untitled'}</span>
+      ${p.preview?`<p class="preview">${p.preview}</p>`:''}
+      <div class="mono-date">${fmtDate(p.date)}</div></div>
+    <div class="body">${p.cover?`<img class="cover" src="${p.cover}" alt="">`:''}${mdToHtml(p.body)}</div>
+  </article>`;
+}
+function syncPreview(){ $('#preview').innerHTML = postHTML(gather()); }
+
+/* toolbar + undo. Editing textarea.value directly wipes the browser's native undo, so we keep
+   our own snapshot history — which also powers a tappable Undo button for phones (no Ctrl+Z there). */
+let history=[body.value], hi=0;
+function commit(){ const v=body.value; if(history[hi]!==v){ history=history.slice(0,hi+1); history.push(v); hi++; } }
+function undo(){ if(hi>0){ hi--; body.value=history[hi]; syncPreview(); body.focus(); } }
+function wrapSelection(before, after){
+  commit();                                                  // record BEFORE the change so undo can return here
+  const s=body.selectionStart, e=body.selectionEnd, v=body.value;
+  body.value = v.slice(0,s) + before + v.slice(s,e) + after + v.slice(e);
+  body.focus(); body.selectionStart=s+before.length; body.selectionEnd=e+before.length;
+  commit(); syncPreview();
+}
+// Drop-cap the paragraph the cursor is in (or the selection), as a <p class="dropcap [yinit]">.
+// Works anywhere and any number of times — each marked paragraph gets its own big initial.
+function paraBounds(v, pos){
+  let s = v.lastIndexOf('\n\n', pos-1); s = s<0 ? 0 : s+2;     // start of this paragraph
+  let e = v.indexOf('\n\n', pos); if(e<0) e = v.length;        // end of this paragraph
+  return [s, e];
+}
+function dropCap(variant){
+  commit();
+  const v=body.value; let s=body.selectionStart, e=body.selectionEnd;
+  if(s===e) [s,e] = paraBounds(v, s);                          // no selection → the whole paragraph
+  const chunk = v.slice(s,e).trim();
+  const marker = variant==='yinit' ? ':dropcap2: ' : ':dropcap: ';
+  // already a drop-cap directive? same button → remove it (toggle off); other button → switch face.
+  const m = chunk.match(/^:dropcap(2)?:\s*([\s\S]*)$/);
+  const out = m
+    ? ( (m[1]?'yinit':'royal')===variant ? m[2] : marker+m[2] )
+    : marker + chunk;
+  body.value = v.slice(0,s) + out + v.slice(e);
+  body.focus(); body.selectionStart = body.selectionEnd = s + out.length;
+  commit(); syncPreview();
+}
+// Prefix the current line(s) with a Markdown marker (## , > , - , 1. …), swapping any existing one.
+function prefixLines(pfx){
+  commit();
+  const v=body.value, s=body.selectionStart, e=body.selectionEnd;
+  const ls = v.lastIndexOf('\n', s-1)+1; let le = v.indexOf('\n', e); if(le<0) le=v.length;
+  let n=0;
+  const out = v.slice(ls,le).split('\n').map(l=>{
+    l = l.replace(/^(\s*)(#{1,3}\s+|>\s?|[-*]\s+|\d+\.\s+)/, '$1');   // strip an existing block marker
+    return pfx==='1. ' ? `${++n}. ${l}` : pfx + l;
+  }).join('\n');
+  body.value = v.slice(0,ls) + out + v.slice(le);
+  body.focus(); body.selectionStart=ls; body.selectionEnd=ls+out.length;
+  commit(); syncPreview();
+}
+
+document.querySelectorAll('#admin .toolbar button').forEach(b=>{
+  // Keep the textarea focused when a button is clicked, so the caret/selection survives and the
+  // view doesn't jump (this is what was yanking you out of the box on H2 / quote).
+  b.addEventListener('mousedown', e=> e.preventDefault());
+  b.addEventListener('click', ()=>{
+  const d=b.dataset;
+  if('undo' in d) return undo();
+  if(d.cap) return dropCap(d.cap);
+  if(d.fig) return wrapSelection(`:fig-${d.fig}: `, ` | caption`);   // directive: fill the url, keep/replace caption
+  if(d.prefix!=null) return prefixLines(d.prefix);
+  if(d.md==='hr') return wrapSelection('\n\n---\n\n','');
+  if(d.wrap!=null){ const [a,c=''] = d.wrap.split('|'); return wrapSelection(a,c); } // **|** , [|](url) , etc.
+  });
+});
+// typing: mirror to preview live, snapshot (debounced) so each burst is one undo step.
+let _t; body.addEventListener('input', ()=>{ syncPreview(); clearTimeout(_t); _t=setTimeout(commit,350); });
+body.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey||e.metaKey)) return;
+  const k=e.key.toLowerCase();
+  if(k==='z'){ e.preventDefault(); return undo(); }
+  if(k==='b'){ e.preventDefault(); return wrapSelection('**','**'); }
+  if(k==='i'){ e.preventDefault(); return wrapSelection('*','*'); }
+  if(k==='k'){ e.preventDefault(); return wrapSelection('[','](url)'); }
+});
+// auto-slug from title until the slug is edited by hand.
+$('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $('#f-slug').value=slugify(e.target.value); syncPreview(); });
+$('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
+['#f-preview','#f-cover'].forEach(s=> $(s).addEventListener('input', syncPreview));
+
+// Edit-existing dropdown: load a post's fields back into the form.
+function populateExisting(){
+  const sel=$('#existing'); sel.innerHTML='<option value="">— new post —</option>';
+  for(const p of POSTS){ const o=el('option'); o.value=p.slug; o.textContent=p.title||p.slug; sel.appendChild(o); }
+}
+$('#existing').addEventListener('change', e=>{
+  const p = POSTS.find(x=>x.slug===e.target.value);
+  if(!p){ $('#clear').click(); return; }
+  $('#f-title').value=p.title||''; $('#f-slug').value=p.slug; $('#f-slug').dataset.touched='1';
+  $('#f-preview').value=p.preview||''; $('#f-cover').value=p.cover||'';
+  body.value=p.body||''; history=[body.value]; hi=0; syncPreview();
+});
+
+// PUBLISH (local for now): add the post to POSTS in memory, re-render the site, jump back to it.
+// ponytail: in-memory only — survives until refresh, no GitHub. Real publishing is a later switch.
+function msg(t, err){ const m=$('#msg'); m.textContent=t; m.style.color = err?'var(--oxblood)':'var(--ink)'; }
+$('#publish').addEventListener('click', ()=>{
+  const p = gather();
+  if(!p.title || !p.slug) return msg('Title and slug are required.', true);
+  const next = [p, ...POSTS.filter(x=>x.slug!==p.slug)].sort(byDateDesc);
+  POSTS.length=0; POSTS.push(...next);
+  renderNav(); renderWriting(); populateExisting();
+  msg('Published locally — opening it on the site…');
+  setTimeout(()=>{ location.hash=''; openFold('writing'); openPost(p.slug); }, 600);
+});
+$('#clear').addEventListener('click', ()=>{
+  ['f-title','f-slug','f-preview','f-cover'].forEach(f=>$('#'+f).value='');
+  $('#f-slug').dataset.touched='';
+  body.value=''; history=['']; hi=0; syncPreview(); msg('');
+});
+
+populateExisting();
+syncPreview();
 </script>
 </body>
 </html>

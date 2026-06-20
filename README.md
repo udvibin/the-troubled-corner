@@ -17,7 +17,7 @@ Open `index.html` in a browser. That's it. Edit, save, refresh.
 
 ## Add content
 
-Copy a block in the content arrays inside the DATA script in `index.html`. There's also a hidden in-browser editor at `#admin`, gated by a passphrase that decrypts a GitHub token (AES-GCM, Web Crypto) and publishes posts via the GitHub API.
+Copy a block in the content arrays inside the DATA script in `index.html` — post bodies are **Markdown**. There's also a full-screen in-browser editor at `#admin` (a Markdown writing desk with live preview). Publishing to GitHub (and the passphrase-decrypted token gate) is wired but currently switched off — publish is local-only for now. See `spec.md` for the done/to-do list.
 
 ## Deploy
 

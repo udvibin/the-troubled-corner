@@ -140,23 +140,35 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
 ---
 
 ## Pending rebuild (ordered punch list)
-**Done:** type system (IM Fell DW Pica everywhere + small-caps headings + Royal drop cap), aged-paper background, palette. **Accordion navigation** ✅ — every section is a collapsible fold; one open at a time; opened fold scrolls to top; Colophon folded in; `#/colophon` hash router removed; Welcome open by default; `+`/`–` markers; old `★`/`hr` inter-section dividers replaced by a hairline on each fold. Admonitions link in place.
 
-**Remaining, in order:**
-1. **Day-book content model** — merge `POSTS` + `PLATES` → the unified `ENTRIES` stream; update the in-site editor for the optional image field. Present each entry **rotational-style** (see reference below): date + optional category tag + title/excerpt + expand; newest first; hairline separators.
-2. **Heading style — workshop.** The current small-caps look is disliked; explore sizes / caps vs small-caps / rules / ornaments and pick one.
-3. **Contents / "legend" list — workshop.** The current nested *Contents → section → post-title* tree is disliked. Lean toward the reference instead: a **slim top nav** of a few sections/tags, letting the dated stream do the talking, rather than a big index.
+### Done ✅
+- **Type system** — IM Fell DW Pica everywhere; **headings finalised as Fell roman** (the small-caps cut was dropped for headings). Aged-paper background + palette.
+- **Drop caps — both faces wired & tuned.** Royal **and** Yinit (`fonts/Yinit.otf` now registered via `@font-face`). Insertable **anywhere, any number of times** (gwern-style) via the editor's `drop-cap` / `cap²` buttons → `:dropcap:` / `:dropcap2:` directives; re-click toggles off, other button switches face. Sizing tuned with the (now-deleted) `dropcap-tuner.html`; the secret was a big **negative `margin-bottom`** to crop each font's hollow lower em-box.
+- **Slim nav** (replaces the old big "Contents" list/tree) — a quiet centred row *Welcome · Writing · Listening · Plates · Marginalia · Colophon · ◆*; the dated stream carries the page. (rotational-style; spec step 3 ✅.)
+- **Markdown editor.** Body is written in **Markdown**, not raw HTML. A tiny hand-rolled `mdToHtml()` (no library) renders both the live preview and the site. Toolbar inserts Markdown; special site bits are one-line directives (`:dropcap:`, `:fig-left: url | caption`). Toolbar redesigned as tactile "keys"; a **cheatsheet** is pinned beside the writing area; focus-stealing bug on H2/quote fixed.
+- **`#admin` is a full-screen route** (not a fold): visiting `#admin` hides the whole site and shows only the writing desk; leaving it restores the site.
+- **Editor niceties** — auto date (today, no field); date renders pretty ("Saturday, June 20, 2026") **below the title/preview line**; undo stack + ↶ button + Ctrl+Z; mobile-friendly (touch targets, stacks); blockquote = oxblood side-rule + upright faded text; inline **floated figures** with captions (`fig◧`/`fig◨` → `:fig-left/right:`).
+- Aesthetic + accordion-fold groundwork from earlier sessions.
 
-**Reference (liked):** [rotational.co.uk](https://rotational.co.uk/) — calm single-column serif blog; slim horizontal nav (*About · Books · RPGs · Projects* + RSS/email); chronological stream, newest-first, each entry = date + category tag + excerpt + "read more", separated by hairlines; no sidebar, lots of whitespace, writing carries it. This shapes both the Day-book entry presentation (step 1) and the legend (step 3). Other touchstones browsed: fromjason.xyz, near.blog, sive.rs, stephango.com, wiki.xxiivv.com.
+### To do (next session)
+1. **Real publishing backend (the big one).** Currently `Publish` is **local-only / in-memory** (survives until refresh; no commit). To make the site usable "from anywhere, upload a pic, write, post":
+   - Re-enable the **passphrase → AES-GCM token** gate (the Unlock button is currently open; real `decryptToken` flow is written but switched off). Create a fine-grained GitHub PAT, encrypt via `encrypt-token.html`, commit ciphertext to `CONFIG.TOKEN_CIPHER`.
+   - Restore the **GitHub commit publish** (the real `publish()` is kept commented in `index.html`).
+   - **Image upload from device** — `<input type="file">` → base64 → commit into the repo (e.g. `/images/`) → use that URL. (No server; works on laptop + phone.)
+   - Deploy to GitHub Pages so login-from-anywhere actually works.
+2. **Day-book content model** — still pending: merge `POSTS` + `PLATES` → one chronological `ENTRIES` stream (editor still writes to `POSTS`; `PLATES` is separate). Decide the name (Day-book / Commonplace / keep Writing).
+3. **Song / Spotify embeds** — designed (click-to-load facade, host-allowlist) but not built; add a `media`/`song` field + render.
+4. **dropcat** — fun side-project, parked in `dropcat.md` (a full A–Z cat drop-cap set).
 
-Each shippable on its own; we execute piece by piece.
+**Reference (liked):** [rotational.co.uk](https://rotational.co.uk/) — calm single-column serif blog; slim horizontal nav; newest-first stream; hairline separators; writing carries it. Other touchstones: fromjason.xyz, near.blog, sive.rs, stephango.com, wiki.xxiivv.com.
 
 ## Open decisions
-- **Fonts:** ✅ locked — IM Fell DW Pica (everywhere) + Royal Initialen drop caps.
-- **Dropcap:** ✅ locked — Royal Initialen (Yinit reserved for an optional 2nd style).
-- **Day-book name:** open — `Day-book` (recommended) · `Commonplace` · keep `Writing`.
-- **Heading style:** open — to workshop (step 2).
-- **Contents / legend style:** open — to workshop (step 3); gathering inspiration first.
+- **Fonts:** ✅ locked — IM Fell DW Pica everywhere; **headings = Fell roman**.
+- **Drop caps:** ✅ locked & tuned — Royal + Yinit, both selectable per paragraph.
+- **Heading style:** ✅ resolved — Fell roman (small-caps cut retired for headings).
+- **Contents / legend:** ✅ resolved — slim horizontal nav.
+- **Editor model:** ✅ resolved — Markdown.
+- **Day-book name:** still open — `Day-book` (recommended) · `Commonplace` · keep `Writing`.
 
 ## Conventions
-Single file, zero deps, comment heavily for learning (lean code, rich comments). See `CLAUDE.md`.
+Single file, zero deps, comment heavily for learning (lean code, rich comments). Post bodies are **Markdown**. See `CLAUDE.md`.
