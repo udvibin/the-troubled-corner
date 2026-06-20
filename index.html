@@ -29,7 +29,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- One external dependency, load-bearing: system fonts can't do the letterpress look. -->
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&family=IM+Fell+DW+Pica+SC&display=swap" rel="stylesheet">
 
 <style>
   /* --------------------------------------------------------------------------
@@ -39,9 +39,15 @@
      :root = the top of the document, so these are available to every element.
      -------------------------------------------------------------------------- */
   :root{
-    --paper:#f4f1e8; --ink:#1a1a1a; --oxblood:#7c1f1f; --faded:#6b6256;
+    --paper:#f3efe3; --ink:#1f1b16; --oxblood:#7c1f1f; --faded:#6b6256;
     --hairline:rgba(26,26,26,.12); --measure:680px;   /* --measure = comfortable reading width */
   }
+
+  /* The drop-cap font, self-hosted from the fonts/ folder. @font-face = "register this
+     font file under a name I can then use in CSS". Royal Initialen = an ornate old initials set.
+     (It could instead be embedded here as base64 to keep one file, but a separate file stays
+     readable and cacheable.) */
+  @font-face{ font-family:"Royal"; src:url("fonts/RoyalInitialen.ttf") format("truetype"); font-display:swap }
 
   /* box-sizing:border-box = padding/border count INSIDE an element's width,
      so widths stay predictable. The * selects every element. Standard first line of any CSS. */
@@ -52,9 +58,21 @@
   /* The base look of the whole page. The `font:` shorthand packs several values:
      weight(400) size(19px)/line-height(1.62) family. */
   body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font:400 19px/1.62 "EB Garamond",Georgia,serif;
+    margin:0; color:var(--ink);
+    font:400 19px/1.64 "IM Fell DW Pica",Georgia,serif;
     -webkit-font-smoothing:antialiased; padding:0 22px;
+    /* AGED PAPER, all in CSS (no image file): faint brown "foxing" stains, an aged edge
+       vignette, then a fine grayscale grain from an inline SVG noise filter. Layers paint
+       top-to-bottom. background-attachment:fixed keeps the texture still while text scrolls. */
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(circle at 18% 20%, rgba(150,110,60,.06), transparent 24%),
+      radial-gradient(circle at 84% 12%, rgba(130,95,55,.05), transparent 20%),
+      radial-gradient(circle at 72% 76%, rgba(110,75,45,.05), transparent 26%),
+      radial-gradient(circle at 26% 90%, rgba(140,100,60,.04), transparent 24%),
+      radial-gradient(ellipse at center, transparent 52%, rgba(80,60,35,.13)),
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+    background-attachment:fixed;
   }
   /* .wrap = a reusable centred column. margin:0 auto centres a fixed-width block. */
   .wrap{max-width:var(--measure); margin:0 auto}
@@ -64,7 +82,7 @@
   a:hover{text-decoration:underline}
 
   /* Small reusable text styles. small-caps renders lowercase letters as little capitals. */
-  .display{font-family:"IM Fell English",Georgia,serif}
+  .display{font-family:"IM Fell DW Pica",Georgia,serif}
   .smallcaps{font-variant:small-caps; letter-spacing:.08em}
   .faded{color:var(--faded)}
   .mono-date{font-variant:small-caps; letter-spacing:.1em; color:var(--oxblood); font-size:.82em}
@@ -79,7 +97,7 @@
   /* clamp(min, preferred, max) = a font-size that scales with screen width but never
      smaller than 2.4rem nor bigger than 3.6rem. Responsive sizing in one line.
      text-transform:none = show the title in whatever case you actually type. */
-  .mast h1{ font-family:"IM Fell English",serif; font-weight:400; color:var(--oxblood);
+  .mast h1{ font-family:"IM Fell DW Pica",serif; font-weight:400; color:var(--oxblood);
     font-size:clamp(2.4rem,7vw,3.6rem); letter-spacing:.06em; margin:.2rem 0 .1rem; text-transform:none }
   .mast .tagline{ font-style:italic; color:var(--faded); margin:.2rem 0 1rem }
   /* font-variant:normal cancels the small-caps from the .smallcaps class, so the byline
@@ -92,9 +110,25 @@
 
   /* section headings */
   section{ padding:1.4rem 0 }
-  h2.sec{ font-family:"IM Fell English",serif; font-weight:400; color:var(--oxblood);
-    font-variant:small-caps; letter-spacing:.14em; font-size:1.8rem; margin:0 0 1.2rem }
-  h3{ font-family:"IM Fell English",serif; font-weight:400; font-size:1.4rem; margin:1.6rem 0 .4rem }
+  /* headings use the SC (small-caps) cut of the same family + tracking + oxblood — the way to
+     make one font read as a heading without a second typeface. */
+  h2.sec{ font-family:"IM Fell DW Pica SC",serif; font-weight:400; color:var(--oxblood);
+    letter-spacing:.1em; font-size:1.7rem; margin:0 0 1.2rem }
+  /* subheadings: same font, italic, to sit a step below the small-caps h2 */
+  h3{ font-family:"IM Fell DW Pica",serif; font-weight:400; font-style:italic; font-size:1.35rem; margin:1.6rem 0 .4rem }
+
+  /* --- ACCORDION FOLDS: a section collapsed to just its heading until it gets class "open" --- */
+  .fold{ border-top:1px solid var(--hairline); padding:0 }          /* a hairline separates the headings */
+  /* the whole heading is the click target; right padding leaves room for the +/– marker */
+  .fold>.fold-head{ cursor:pointer; user-select:none; position:relative; margin:0; padding:1.05rem 1.8rem 1.05rem 0 }
+  /* ::after = a generated marker (not in the HTML) showing open/closed at the heading's right edge */
+  .fold>.fold-head::after{ content:"+"; position:absolute; right:.1rem; top:50%; transform:translateY(-50%);
+    font-family:"IM Fell DW Pica",serif; color:var(--oxblood); font-size:1.5rem; opacity:.55; transition:opacity .2s }
+  .fold.open>.fold-head::after{ content:"–" }
+  .fold>.fold-head:hover::after{ opacity:1 }
+  /* the body is hidden until the section has class "open" (toggled by JS) */
+  .fold-body{ display:none; padding-bottom:1.8rem }
+  .fold.open>.fold-body{ display:block }
 
   /* contents / index list */
   .contents ol{ list-style:none; padding:0; margin:0 }   /* list-style:none removes the number bullets */
@@ -107,13 +141,15 @@
   /* about / welcome block */
   .about{ border-left:2px solid var(--oxblood); padding-left:1.3rem }
   /* ::first-letter = style just the first letter → the big drop cap. float:left lets text wrap around it. */
-  .dropcap::first-letter{ font-family:"IM Fell English",serif; float:left; font-size:3.4rem;
-    line-height:.8; padding:.1rem .5rem 0 0; color:var(--oxblood) }
+  .dropcap::first-letter{ font-family:"Royal",serif; float:left; font-size:3.6rem;
+    line-height:.72; margin:.06rem .16em 0 0; color:var(--oxblood);
+    /* faint letterpress emboss: a pale highlight below + a darker press above */
+    text-shadow:0 1px 0 rgba(255,255,255,.45), 0 -1px 0 rgba(0,0,0,.12) }
 
   /* writing (blog posts) */
   article.post{ border-bottom:1px solid var(--hairline); padding:1.1rem 0 }
   .post .head{ cursor:pointer }
-  .post .title{ font-family:"IM Fell English",serif; font-size:1.45rem; color:var(--ink) }
+  .post .title{ font-family:"IM Fell DW Pica",serif; font-size:1.45rem; color:var(--ink) }
   .post:hover .title{ color:var(--oxblood) }
   .post .preview{ color:var(--faded); margin:.25rem 0 0 }
   /* A post body is hidden until its article also has the class "open" (toggled by JS on click). */
@@ -129,7 +165,7 @@
   /* listening list */
   .listen{ list-style:none; padding:0; margin:0 }
   .listen li{ padding:.5rem 0; border-bottom:1px dotted var(--hairline) }
-  .listen .album{ font-family:"IM Fell English",serif; font-size:1.15rem }
+  .listen .album{ font-family:"IM Fell DW Pica",serif; font-size:1.15rem }
 
   /* plates (photos). display:flex + flex-wrap = items sit in a row and wrap to the next line as needed. */
   .plates{ display:flex; flex-wrap:wrap; gap:1.6rem; justify-content:center }
@@ -168,7 +204,7 @@
   #admin input,#admin textarea,#admin select{ width:100%; font-family:inherit; font-size:1rem;
     background:#fbf9f3; border:1px solid var(--hairline); padding:.5rem; margin:.25rem 0 .8rem; color:var(--ink) }
   #admin textarea{ min-height:220px; font-family:"Consolas",monospace; font-size:.92rem }
-  #admin button{ font-family:"IM Fell English",serif; font-size:1rem; background:var(--oxblood);
+  #admin button{ font-family:"IM Fell DW Pica",serif; font-size:1rem; background:var(--oxblood);
     color:var(--paper); border:0; padding:.5rem 1.1rem; cursor:pointer; margin:.2rem .3rem .2rem 0 }
   #admin button.ghost{ background:transparent; color:var(--oxblood); border:1px solid var(--oxblood) }
   .toolbar button{ background:#fbf9f3; color:var(--ink); border:1px solid var(--hairline); padding:.3rem .5rem; font-size:.85rem }
@@ -257,81 +293,83 @@ const CONFIG = {
 
 <!-- HOME: the long scrolling page. The router (in JS) hides this whole block
      when you visit the colophon "page", and shows it again otherwise. -->
-<main class="wrap" id="home">
+<main class="wrap">
 
-  <!-- Contents: filled by renderContents(). Lists sections + every post + the colophon link. -->
+  <!-- CONTENTS: the persistent menu, always visible. renderContents() fills it; clicking a
+       link opens that one fold below. -->
   <section id="contents" class="contents">
     <h2 class="sec">Contents</h2>
     <ol id="contents-list"></ol>
   </section>
 
-  <hr class="rule">
+  <!-- Each section below is a FOLD: collapsed to just its heading until opened (by clicking the
+       heading, or its Contents link). CSS hides .fold-body until the .fold has class "open"; the
+       JS keeps only one open at a time and scrolls it to the top. -->
 
-  <!-- Welcome: plain text you write directly. The drop cap comes from the .dropcap class. -->
-  <section id="about">
-    <h2 class="sec">Welcome</h2>
-    <p class="about dropcap">Welcome, whoever you are. This is a small, quiet corner of the web I keep for
-      myself — somewhere to think out loud, set a little type, and figure out my own style without anyone
-      watching. Make yourself comfortable. There's tea, metaphorically.</p>
-    <p class="faded" style="margin-top:1rem">Curious how this place is put together? <a href="#/colophon">Read the colophon ☞</a></p>
+  <!-- Welcome -->
+  <section id="about" class="fold">
+    <h2 class="sec fold-head">Welcome</h2>
+    <div class="fold-body">
+      <p class="about dropcap">Welcome, whoever you are. This is a small, quiet corner of the web I keep for
+        myself — somewhere to think out loud, set a little type, and figure out my own style without anyone
+        watching. Make yourself comfortable. There's tea, metaphorically.</p>
+      <p class="faded" style="margin-top:1rem">Curious how this place is put together? <a href="#colophon" data-fold="colophon">Read the colophon ☞</a></p>
+    </div>
   </section>
 
-  <hr class="rule">
-
-  <!-- Writing: empty container; renderWriting() builds the post cards into it. -->
-  <section id="writing">
-    <h2 class="sec">Writing</h2>
-    <div id="writing-list"></div>
+  <!-- Writing -->
+  <section id="writing" class="fold">
+    <h2 class="sec fold-head">Writing</h2>
+    <div class="fold-body"><div id="writing-list"></div></div>
   </section>
 
-  <div class="stars">★ ★ ★ ★ ★</div>
-
-  <!-- Listening: filled by renderListening() -->
-  <section id="listening">
-    <h2 class="sec">Listening</h2>
-    <ul class="listen" id="listening-list"></ul>
+  <!-- Listening -->
+  <section id="listening" class="fold">
+    <h2 class="sec fold-head">Listening</h2>
+    <div class="fold-body"><ul class="listen" id="listening-list"></ul></div>
   </section>
 
-  <hr class="rule">
-
-  <!-- Plates (photos): filled by renderPlates() -->
-  <section id="plates">
-    <h2 class="sec">Plates</h2>
-    <div class="plates" id="plates-list"></div>
+  <!-- Plates (photos) -->
+  <section id="plates" class="fold">
+    <h2 class="sec fold-head">Plates</h2>
+    <div class="fold-body"><div class="plates" id="plates-list"></div></div>
   </section>
 
-  <hr class="rule">
-
-  <!-- Marginalia (links): filled by renderLinks() -->
-  <section id="marginalia">
-    <h2 class="sec">Marginalia</h2>
-    <ul class="links" id="links-list"></ul>
+  <!-- Marginalia (links) -->
+  <section id="marginalia" class="fold">
+    <h2 class="sec fold-head">Marginalia</h2>
+    <div class="fold-body"><ul class="links" id="links-list"></ul></div>
   </section>
 
-  <hr class="rule">
-
-  <!-- Admonitions: anonymous feedback. Handled entirely by admonymous.co (their backend),
-       so this is just a link out. target="_blank" opens it in a new tab; rel="noopener" is a
-       small security/perf safeguard for new-tab links. Swap for a native form later if wanted. -->
-  <section id="admonitions">
-    <h2 class="sec">Admonitions</h2>
-    <p>Think I'm wrong about something? Tell me — anonymously, no names, no accounts.
-      <a href="https://www.admonymous.co/uday-gupta" target="_blank" rel="noopener">Leave an anonymous note ☞</a></p>
+  <!-- Admonitions -->
+  <section id="admonitions" class="fold">
+    <h2 class="sec fold-head">Admonitions</h2>
+    <div class="fold-body">
+      <!-- anonymous feedback handled entirely by admonymous.co (their backend); just a link out.
+           target=_blank opens a new tab; rel=noopener is a small safeguard for new-tab links. -->
+      <p>Think I'm wrong about something? Tell me — anonymously, no names, no accounts.
+        <a href="https://www.admonymous.co/uday-gupta" target="_blank" rel="noopener">Leave an anonymous note ☞</a></p>
+    </div>
   </section>
 
-</main>
-
-<!-- COLOPHON: a separate "page". It lives in the same file but is hidden until the
-     URL hash is #/colophon (handled by showRoute() in JS). Everything here is plain text. -->
-<section id="page-colophon" class="wrap" style="display:none">
-  <div class="stars">★ ★ ★ ★ ★</div>
-  <h2 class="sec">Colophon</h2>
+  <!-- Colophon: now just another fold (no more #/colophon page, no hash router). -->
+  <section id="colophon" class="fold">
+    <h2 class="sec fold-head">Colophon</h2>
+    <div class="fold-body">
   <p class="about dropcap">A colophon is the note at the back of an old book that tells you how it was made —
     the type, the press, the hands involved. Here is this one's.</p>
 
+  <h3>The look</h3>
+  <p>This page is dressed like an <em>antique letterpress book</em>: warm ivory paper in place of glaring white,
+    ink-black text, a single oxblood accent, and serif type with the ink-spread of old metal. Drop caps open the
+    longer pieces, stars divide the sections, and a pointing hand sends you onward. Nothing glows, nothing blinks,
+    nothing competes for your eye — it is meant to feel <em>found</em>, like a quiet book pulled off a shelf. The
+    aim is calm, neutral, and welcoming: a place to read slowly, not a thing to be optimised.</p>
+
   <h3>Typefaces</h3>
-  <p>Set in <em>IM Fell English</em> — a digitisation of a 17th-century letterpress face, ink-spread and all —
-    for display, and <em>EB Garamond</em> for reading. Both served from Google Fonts; everything else is a system serif.</p>
+  <p>Set throughout in <em>IM Fell DW Pica</em> — a digitisation of a 17th-century letterpress face, ink-spread
+    and all — doing every job here: title, headings (in its small-caps cut), and reading text. Served from Google
+    Fonts. The drop caps are <em>Royal Initialen</em>, an ornate old initials face hosted in the repository itself.</p>
 
   <h3>How it's built</h3>
   <p>One hand-written <code>index.html</code>. No framework, no build step, no bundler, no dependencies —
@@ -354,13 +392,15 @@ const CONFIG = {
     <a href="https://www.fromjason.xyz/">From Jason</a> and <a href="https://near.blog/">near.blog</a>,
     which showed that a personal site can just be calm and yours.</p>
 
-  <p style="margin-top:2rem"><a href="#contents">☞ back to the index</a></p>
-  <div class="stars">★ ★ ★ ★ ★</div>
-</section>
+      <p style="margin-top:2rem"><a href="#contents">☞ back to the index</a></p>
+    </div>
+  </section>
+
+</main>
 
 <footer class="wrap">
   <div class="stars">★ ★ ★ ★ ★</div>
-  <div class="colophon">Set in IM Fell English &amp; EB Garamond. Hand-built, no frameworks.</div>
+  <div class="colophon">Set in IM Fell DW Pica, with Royal Initialen drop caps. Hand-built, no frameworks.</div>
   <div><span id="year"></span> · <a href="mailto:you@example.com">email</a> · <a href="#">github</a></div>
 </footer>
 
@@ -432,16 +472,16 @@ document.getElementById('year').textContent = new Date().getFullYear();
 /* ---------- render: turn the DATA arrays into HTML on the page ---------- */
 function renderContents(){
   const ol = $('#contents-list'); ol.innerHTML='';            // start empty
-  const secs = [['#about','Welcome'],['#writing','Writing'],['#listening','Listening'],['#plates','Plates'],['#marginalia','Marginalia'],['#admonitions','Admonitions']];
-  for(const [href,name] of secs){                              // one row per section
-    const li = el('li','lead'); li.innerHTML = `<a href="${href}">${name}</a>`; ol.appendChild(li);
-    if(href==='#writing'){                                     // under Writing, list every post
+  // each row links to a fold by id; data-fold tells the click handler which fold to open.
+  const secs = [['about','Welcome'],['writing','Writing'],['listening','Listening'],['plates','Plates'],['marginalia','Marginalia'],['admonitions','Admonitions'],['colophon','Colophon']];
+  for(const [id,name] of secs){                                // one row per fold
+    const li = el('li','lead'); li.innerHTML = `<a href="#${id}" data-fold="${id}">${name}</a>`; ol.appendChild(li);
+    if(id==='writing'){                                        // under Writing, list every post
       for(const p of [...POSTS].sort(byDateDesc)){
         const s = el('li','sub'); s.innerHTML = `<a href="#post-${p.slug}" data-open="${p.slug}">${p.title}</a>`; ol.appendChild(s);
       }
     }
   }
-  const colo = el('li','lead'); colo.innerHTML = `<a href="#/colophon">Colophon</a>`; ol.appendChild(colo);
   const adm = el('li','sub'); adm.innerHTML = `<a href="#admin" class="faded" style="opacity:.4">◆</a>`; ol.appendChild(adm); // discreet admin link
 }
 function renderWriting(){
@@ -488,26 +528,37 @@ function renderLinks(){
 function renderAll(){ renderContents(); renderWriting(); renderListening(); renderPlates(); renderLinks(); }
 renderAll(); // do it once on load
 
-/* ---------- routing: the long-scroll "home" vs the standalone colophon "page" ----------
-   We use the URL hash. Page routes start with "#/" (e.g. #/colophon) so they never clash
-   with in-page anchors (#writing) or post links (#post-…), which stay bare. */
-function showRoute(){
-  const onColophon = location.hash.startsWith('#/colophon');
-  $('#home').style.display = onColophon ? 'none' : '';          // hide/show the whole home block
-  $('#page-colophon').style.display = onColophon ? 'block' : 'none';
-  if(onColophon) window.scrollTo(0,0);
+/* ---------- accordion: each section is a fold; only one open at a time ----------
+   No URL-hash "pages" any more. setOpenFold(id) opens exactly one fold (no scrolling);
+   openFold(id) also scrolls it to the top; toggleFold(f) flips one heading, closing the rest. */
+function setOpenFold(id){
+  document.querySelectorAll('.fold').forEach(f=> f.classList.toggle('open', f.id===id));
 }
-addEventListener('hashchange', showRoute); // re-run whenever the hash changes (link click / back button)
-showRoute();                               // and once on load
+function openFold(id){
+  setOpenFold(id);
+  const f = document.getElementById(id);
+  if(f) f.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function toggleFold(f){
+  if(f.classList.contains('open')){ f.classList.remove('open'); }              // open → close it
+  else{ setOpenFold(f.id); f.scrollIntoView({behavior:'smooth', block:'start'}); } // else open it alone + scroll
+}
+setOpenFold('about');   // open Welcome by default so the page isn't just a list of headings
 
 /* ---------- interactions: open posts, copy links, lightbox, back-to-top, easter egg ---------- */
 function openPost(slug){
   const a = document.getElementById('post-'+slug);
-  if(a){ a.classList.add('open'); a.scrollIntoView({behavior:'smooth',block:'start'}); }
+  if(!a) return;
+  const fold = a.closest('.fold'); if(fold) setOpenFold(fold.id);   // make sure the post's fold is open
+  a.classList.add('open'); a.scrollIntoView({behavior:'smooth',block:'start'});
 }
 // One click listener on the whole document ("event delegation") handles every post,
 // even ones added later — cheaper than attaching a listener to each card.
 document.addEventListener('click', e=>{
+  const foldHead = e.target.closest('.fold-head');                    // clicked a fold heading?
+  if(foldHead){ toggleFold(foldHead.closest('.fold')); return; }      // open it (closing the rest), or close it
+  const foldLink = e.target.closest('[data-fold]');                   // clicked a Contents link?
+  if(foldLink){ e.preventDefault(); openFold(foldLink.dataset.fold); return; } // open that fold + scroll to it
   const head = e.target.closest('.post .head');                       // clicked a post header?
   if(head && !e.target.closest('.permalink')){ head.parentElement.classList.toggle('open'); } // toggle open/closed
   const perma = e.target.closest('[data-perma]');                     // clicked the ☞ permalink?

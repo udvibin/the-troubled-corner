@@ -10,10 +10,11 @@ One person's calm corner of the web. Inspiration: [fromjason.xyz](https://www.fr
 
 ## Hard constraints (locked)
 
-- **Single `index.html`** — all CSS in `<style>`, all JS in `<script>`, all content inline. Zero frameworks, zero build step.
+- **Single-file *code*.** All *code + content + structure* in one `index.html` (CSS in `<style>`, JS in `<script>`, content in the data arrays). The rule that matters: **no framework, no build step, no server, no libraries.** *Assets ≠ code* — fonts live in `fonts/`, images are URLs; sibling asset files are fine and expected. **Never base64-embed fonts/images into the HTML** (bloat + unreadable). The single escape hatch stays: move data to a `posts.json` only if it gets heavy (~40+ entries).
 - **One page, accordion navigation** (see Navigation) — no URL-hash "pages".
-- **Allowed external resources** (media/code lives *outside* the file, that's fine):
-  - One Google Fonts `<link>` (load-bearing — see Typography).
+- **Allowed external resources / assets** (assets ≠ code; living *outside* the HTML is fine):
+  - The Google Fonts `<link>` (IM Fell DW Pica + its `SC` cut — load-bearing).
+  - Self-hosted font files in `fonts/` (e.g. `RoyalInitialen.ttf`) via `@font-face`.
   - Images / woodcut SVGs hosted elsewhere (URLs).
   - Optionally one ambient audio file.
 - **No libraries.** Pure HTML/CSS/vanilla JS. Web Crypto (`crypto.subtle`) is browser stdlib and allowed.
@@ -40,8 +41,8 @@ One calm page. The **Contents** is the persistent menu at the top. Every content
 ### Palette
 | token | hex | use |
 |-------|-----|-----|
-| paper | `#f4f1e8` | background (warm ivory, never white) |
-| ink | `#1a1a1a` | body text (warm near-black) |
+| paper | `#f3efe3` | background — aged ivory; CSS patina on `body` (foxing stains + edge vignette + SVG grain) |
+| ink | `#1f1b16` | body text (warm near-black) |
 | oxblood | `#7c1f1f` | accent: masthead, dates, tags, rules |
 | faded | `#6b6256` | secondary text: metadata, captions, previews |
 | hairline | `rgba(26,26,26,0.12)` | thin rules / dividers |
@@ -49,17 +50,17 @@ One calm page. The **Contents** is the persistent menu at the top. Every content
 No neon, no glow, no scanlines. Contrast comes from serif weight and oxblood, not light effects.
 
 ### Typography
-One Google Fonts `<link>` is load-bearing — system fonts can't produce this look. Current: `IM Fell English` (display) + `EB Garamond` (body), ~18–19px, line-height ~1.6, reading measure max-width ~680px, single centered column, tracked small-caps subheads, optional mono for code.
+**LOCKED.** One typeface does every job: **IM Fell DW Pica** (Igino Marini's digitisation of a 17th-c. Fell type, ink-spread and all) — body, masthead, post titles. **Headings** use its small-caps cut (`IM Fell DW Pica SC`) + tracking + oxblood — the way to make one font read as a heading. ~19px, line-height ~1.64, reading measure max-width ~680px, single centred column. Both cuts from one Google Fonts `<link>`.
 
-**Exploration board (all free, Google Fonts) — pick to try:**
-- *Display:* IM Fell English *(current)* · Cormorant Garamond · Playfair Display · Libre Caslon Display · UnifrakturCook (blackletter)
-- *Body:* EB Garamond *(current)* · Crimson Pro · Spectral · Lora
-- *Dropcap initial (via `::first-letter`):* IM Fell *(current)* · Goudy Initialen · UnifrakturCook (blackletter initial)
+**Drop caps: `Royal Initialen`** — an ornate old initials face, self-hosted from `fonts/` via `@font-face` (Google doesn't carry decorative initial sets), oxblood + a faint letterpress emboss. `fonts/Yinit.otf` (public-domain illuminated set) is kept for a possible *second* drop-cap style later (Gwern-ish variety), not wired yet.
+
+> The heading look and the Contents-list ("legend") look are still being **workshopped** — see Pending rebuild steps 3–4.
 
 > From Gwern: borrow ONE decorative initial via `::first-letter`. Skip his system (random per-letter fonts, light/dark sets, build scripts, themed dropcap packs) — that's the complexity he warned us off.
 
 ### Ornaments & texture
-- **Drop caps** on the first paragraph of the Colophon/Welcome and long entries (CSS `::first-letter`).
+- **Drop caps** (Royal Initialen via `::first-letter`, oxblood + faint emboss) on the first paragraph of the Colophon/Welcome and long entries.
+- **Aged paper:** a CSS patina on `body` — foxing stains + edge vignette + a fine SVG-noise grain. No image file.
 - **Woodcut / engraving illustrations** from public-domain archives (Old Book Illustrations, rawpixel PD) as external SVG/PNG. The masthead currently uses an inline SVG ornament (swap for a woodcut anytime).
 - **Star dividers** `★ ★ ★ ★ ★` and thin oxblood/hairline rules.
 - **Manicule** (pointing-hand ☞) for "back to top" and permalinks.
@@ -138,17 +139,24 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
 
 ---
 
-## Pending rebuild (do in ONE pass)
-The current `index.html` still has the old separate Writing/Plates sections and hash-route colophon. Next build pass consolidates:
-1. Convert all sections to the **accordion**; fold the colophon back in; drop the hash router.
-2. Merge `POSTS` + `PLATES` → the unified **Day-book** `ENTRIES` stream; update the editor for the optional image field.
-3. Apply chosen **fonts + dropcap**.
-Admonitions link is already in place.
+## Pending rebuild (ordered punch list)
+**Done:** type system (IM Fell DW Pica everywhere + small-caps headings + Royal drop cap), aged-paper background, palette. **Accordion navigation** ✅ — every section is a collapsible fold; one open at a time; opened fold scrolls to top; Colophon folded in; `#/colophon` hash router removed; Welcome open by default; `+`/`–` markers; old `★`/`hr` inter-section dividers replaced by a hairline on each fold. Admonitions link in place.
 
-## Open decisions (pick by gut)
-- **Day-book name:** `Day-book` (recommended) · `Commonplace` · keep `Writing`.
-- **Font direction:** stay antique (IM Fell / Garamond) · or swap from the board above.
-- **Dropcap:** keep IM Fell · Goudy Initialen · blackletter (UnifrakturCook).
+**Remaining, in order:**
+1. **Day-book content model** — merge `POSTS` + `PLATES` → the unified `ENTRIES` stream; update the in-site editor for the optional image field. Present each entry **rotational-style** (see reference below): date + optional category tag + title/excerpt + expand; newest first; hairline separators.
+2. **Heading style — workshop.** The current small-caps look is disliked; explore sizes / caps vs small-caps / rules / ornaments and pick one.
+3. **Contents / "legend" list — workshop.** The current nested *Contents → section → post-title* tree is disliked. Lean toward the reference instead: a **slim top nav** of a few sections/tags, letting the dated stream do the talking, rather than a big index.
+
+**Reference (liked):** [rotational.co.uk](https://rotational.co.uk/) — calm single-column serif blog; slim horizontal nav (*About · Books · RPGs · Projects* + RSS/email); chronological stream, newest-first, each entry = date + category tag + excerpt + "read more", separated by hairlines; no sidebar, lots of whitespace, writing carries it. This shapes both the Day-book entry presentation (step 1) and the legend (step 3). Other touchstones browsed: fromjason.xyz, near.blog, sive.rs, stephango.com, wiki.xxiivv.com.
+
+Each shippable on its own; we execute piece by piece.
+
+## Open decisions
+- **Fonts:** ✅ locked — IM Fell DW Pica (everywhere) + Royal Initialen drop caps.
+- **Dropcap:** ✅ locked — Royal Initialen (Yinit reserved for an optional 2nd style).
+- **Day-book name:** open — `Day-book` (recommended) · `Commonplace` · keep `Writing`.
+- **Heading style:** open — to workshop (step 2).
+- **Contents / legend style:** open — to workshop (step 3); gathering inspiration first.
 
 ## Conventions
 Single file, zero deps, comment heavily for learning (lean code, rich comments). See `CLAUDE.md`.
