@@ -329,10 +329,10 @@ const LINKS = [
 // OWNER/REPO tell the editor which GitHub repo to commit to. TOKEN_CIPHER is your
 // encrypted GitHub token (make it with encrypt-token.html). All stay safe to be public.
 const CONFIG = {
-  OWNER: "YOUR_GITHUB_USERNAME",   // e.g. "uday"
-  REPO:  "YOUR_REPO_NAME",         // e.g. "site"
-  BRANCH:"main",
-  TOKEN_CIPHER: null               // { "salt":"…", "iv":"…", "ct":"…" }
+  OWNER: "udvibin",
+  REPO:  "the-troubled-corner",
+  BRANCH:"master",
+  TOKEN_CIPHER: null               // { "salt":"…", "iv":"…", "ct":"…" } — make with encrypt-token.html; null = publish stays local-only
 };
 // ---------------------------------------------------------------------------
 </script>
@@ -469,7 +469,7 @@ const CONFIG = {
 <footer class="wrap">
   <div class="stars">★ ★ ★ ★ ★</div>
   <div class="colophon">Set in IM Fell DW Pica, with Royal Initialen drop caps. Hand-built, no frameworks.</div>
-  <div><span id="year"></span> · <a href="mailto:you@example.com">email</a> · <a href="#">github</a></div>
+  <div><span id="year"></span> · <a href="mailto:udayg693@gmail.com">email</a> · <a href="https://github.com/udvibin/the-troubled-corner">github</a></div>
 </footer>
 
 <!-- ADMIN: the writing desk. It's still in this one file, but the #admin route hides the whole
@@ -489,6 +489,11 @@ const CONFIG = {
   <input id="f-preview" placeholder="one line shown before the post is expanded">
   <span class="label">Cover image URL <span class="faded">(optional)</span></span>
   <input id="f-cover" placeholder="https://…">
+  <!-- …or pick a photo from this device. It gets committed into the repo's images/ folder through
+       the GitHub API (so it needs the passphrase below), and its URL is filled in for you:
+       an empty Cover field claims it, otherwise it lands in the body at the cursor. -->
+  <span class="label">…or upload an image <span class="faded">(commits to <code>images/</code>; needs the passphrase)</span></span>
+  <input id="f-image" type="file" accept="image/*">
 
   <!-- BODY: write in Markdown. Blank line = new paragraph. Buttons insert the syntax; the special
        site bits (drop cap, floated figure) insert one-line directives the renderer understands. -->
@@ -547,6 +552,12 @@ Blank line between paragraphs."></textarea>
 
   <span class="label">Live preview — exactly how it will look on the site</span>
   <div id="preview"></div>
+
+  <!-- The gate. The passphrase decrypts CONFIG.TOKEN_CIPHER into the GitHub token, in memory only.
+       Wrong passphrase → decryption itself fails → nothing can be committed. That's the whole lock:
+       cryptography, not an if-statement. Asked once per visit; the token is never stored anywhere. -->
+  <span class="label">Passphrase <span class="faded">(unlocks publishing — asked once per visit)</span></span>
+  <input id="f-pass" type="password" placeholder="the passphrase that unlocks the key…">
 
   <div class="actions">
     <button class="btn" id="publish">Publish</button>
@@ -853,17 +864,122 @@ $('#existing').addEventListener('change', e=>{
   body.value=p.body||''; history=[body.value]; hi=0; syncPreview();
 });
 
-// PUBLISH (local for now): add the post to POSTS in memory, re-render the site, jump back to it.
-// ponytail: in-memory only — survives until refresh, no GitHub. Real publishing is a later switch.
+/* ---------- PUBLISH: commit the post straight into index.html on GitHub ----------
+   The whole "backend" is the GitHub contents API. The flow:
+     1. passphrase → decrypt CONFIG.TOKEN_CIPHER (PBKDF2 → AES-GCM) → token held in memory.
+     2. GET this very file from the repo (its content + a `sha`, GitHub's version stamp).
+     3. Find the POSTS block between the // === POSTS_START/END === markers, parse the LIVE
+        array (not this page's copy, which may be stale if you posted from another device),
+        insert/replace this post, newest first.
+     4. PUT the reassembled file back, quoting the sha ("I edited the version I read").
+        If someone committed in between, GitHub answers 409 — we re-fetch once and retry.
+   GitHub Pages redeploys on the commit, so the post is live in ~a minute.
+   No TOKEN_CIPHER configured yet? Publish falls back to local/in-memory so the desk still works. */
 function msg(t, err){ const m=$('#msg'); m.textContent=t; m.style.color = err?'var(--oxblood)':'var(--ink)'; }
-$('#publish').addEventListener('click', ()=>{
+
+// base64 helpers. atob/btoa only speak Latin-1, and this file is full of ★ ☞ — dashes, so the
+// text must pass through TextEncoder/TextDecoder as real UTF-8 bytes on both trips.
+const b64ToBuf  = b64 => Uint8Array.from(atob(b64.replace(/\s/g,'')), c=>c.charCodeAt(0));  // GitHub wraps base64 in newlines — strip them
+const b64ToUtf8 = b64 => new TextDecoder().decode(b64ToBuf(b64));
+function utf8ToB64(str){
+  const bytes = new TextEncoder().encode(str); let bin='';
+  for(let i=0;i<bytes.length;i+=0x8000)                       // chunked: spreading the whole file at once overflows the JS argument limit
+    bin += String.fromCharCode(...bytes.subarray(i,i+0x8000));
+  return btoa(bin);
+}
+
+// passphrase → key → token. Mirrors encrypt-token.html exactly (same salt / 250k iterations / AES-GCM).
+let TOKEN = null;                                             // memory only; gone on refresh
+async function getToken(){
+  if(TOKEN) return TOKEN;
+  const pass = $('#f-pass').value;
+  if(!pass) throw new Error('Enter the passphrase first.');
+  const c  = CONFIG.TOKEN_CIPHER;
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64ToBuf(c.salt), iterations:250000, hash:'SHA-256'},
+                km, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  try{
+    TOKEN = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:b64ToBuf(c.iv)}, key, b64ToBuf(c.ct)));
+  }catch{ throw new Error('Wrong passphrase.'); }              // AES-GCM authenticates: a wrong key doesn't garble, it refuses
+  return TOKEN;
+}
+
+// one thin wrapper over the GitHub contents API, with human error messages.
+const ghUrl = path => `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`;
+async function gh(path, opts={}){
+  let r;
+  try{ r = await fetch(ghUrl(path), {...opts, headers:{ Authorization:'Bearer '+TOKEN, Accept:'application/vnd.github+json' }}); }
+  catch{ throw new Error('Network failure — are you offline?'); }
+  if(!r.ok){
+    const why = r.status===401 ? 'token rejected (expired or revoked?)'
+              : r.status===403 ? 'refused (rate limit, or the token lacks contents:write on this repo)'
+              : r.status===404 ? 'not found (check CONFIG.OWNER / REPO / BRANCH)'
+              : r.status===409 ? 'conflict' : 'error '+r.status;
+    const e = new Error('GitHub: '+why); e.status = r.status; throw e;
+  }
+  return r.json();
+}
+
+// Fetch the live index.html, splice this post into its POSTS block, commit it back.
+async function commitPost(p, retried){
+  const file = await gh(`index.html?ref=${CONFIG.BRANCH}`);
+  const src  = b64ToUtf8(file.content);
+  const A='// === POSTS_START ===', B='// === POSTS_END ===';
+  const a=src.indexOf(A), b=src.indexOf(B);
+  if(a<0 || b<a) throw new Error('POSTS markers missing in the live file.');
+  const block = src.slice(a+A.length, b);
+  const posts = JSON.parse(block.slice(block.indexOf('['), block.lastIndexOf(']')+1));  // just the [...] between the markers
+  const next  = [p, ...posts.filter(x=>x.slug!==p.slug)].sort(byDateDesc);              // insert/replace by slug, newest first
+  const out   = src.slice(0, a+A.length) + '\nconst POSTS = ' + JSON.stringify(next, null, 2) + ';\n' + src.slice(b);
+  try{
+    await gh('index.html', { method:'PUT',
+      body: JSON.stringify({ message:`new post: ${p.title}`, content:utf8ToB64(out), sha:file.sha, branch:CONFIG.BRANCH }) });
+  }catch(e){
+    if(e.status===409 && !retried) return commitPost(p, true);  // sha moved under us → one re-fetch + retry
+    throw e;
+  }
+  return next;
+}
+
+$('#publish').addEventListener('click', async ()=>{
   const p = gather();
   if(!p.title || !p.slug) return msg('Title and slug are required.', true);
-  const next = [p, ...POSTS.filter(x=>x.slug!==p.slug)].sort(byDateDesc);
-  POSTS.length=0; POSTS.push(...next);
-  renderNav(); renderWriting(); populateExisting();
-  msg('Published locally — opening it on the site…');
-  setTimeout(()=>{ location.hash=''; openFold('writing'); openPost(p.slug); }, 600);
+  // shared tail: swap in the new list, re-render, then leave the desk and open the post on the site.
+  const show = next => { POSTS.length=0; POSTS.push(...next); renderNav(); renderWriting(); populateExisting();
+    setTimeout(()=>{ location.hash=''; openFold('writing'); openPost(p.slug); }, 900); };
+  if(!CONFIG.TOKEN_CIPHER){                                     // no encrypted token committed yet → old local-only behaviour
+    show([p, ...POSTS.filter(x=>x.slug!==p.slug)].sort(byDateDesc));
+    return msg('Published locally only — no TOKEN_CIPHER in CONFIG yet (gone on refresh).');
+  }
+  try{
+    msg('Unlocking…');               await getToken();
+    msg('Committing to GitHub…');    const next = await commitPost(p);
+    msg('Committed ✓ — live on the site in about a minute.');
+    show(next);
+  }catch(err){ msg(err.message, true); }
+});
+
+// IMAGE UPLOAD: pick a file → it's committed into images/ in the repo → the URL is filled in.
+// The raw.githubusercontent.com URL serves the moment the commit lands (no waiting for the
+// Pages deploy), and works when previewing this file locally too.
+$('#f-image').addEventListener('change', async e=>{
+  const file = e.target.files[0]; if(!file) return;
+  e.target.value = '';                                          // reset so re-picking the same file fires again
+  if(!CONFIG.TOKEN_CIPHER) return msg('Uploading needs the token — no TOKEN_CIPHER in CONFIG yet.', true);
+  try{
+    await getToken();
+    msg('Uploading image…');
+    // FileReader gives "data:image/…;base64,XXXX" — the part after the comma IS the base64 GitHub wants.
+    const b64 = await new Promise((res,rej)=>{ const r=new FileReader();
+      r.onload=()=>res(r.result.split(',')[1]); r.onerror=()=>rej(new Error('Could not read the file.')); r.readAsDataURL(file); });
+    const ext  = (file.name.match(/\.\w+$/)||['.jpg'])[0];
+    const path = `images/${Date.now()}-${slugify(file.name.replace(/\.\w+$/,''))||'img'}${ext}`;  // timestamp = unique, no collisions
+    await gh(path, { method:'PUT', body: JSON.stringify({ message:`image: ${file.name}`, content:b64, branch:CONFIG.BRANCH }) });
+    const url = `https://raw.githubusercontent.com/${CONFIG.OWNER}/${CONFIG.REPO}/${CONFIG.BRANCH}/${path}`;
+    if(!$('#f-cover').value) $('#f-cover').value = url;         // an empty Cover field claims the image…
+    else wrapSelection(`![](${url})`, '');                      // …otherwise it drops into the body at the cursor
+    syncPreview(); msg('Image uploaded ✓');
+  }catch(err){ msg(err.message, true); }
 });
 $('#clear').addEventListener('click', ()=>{
   ['f-title','f-slug','f-preview','f-cover'].forEach(f=>$('#'+f).value='');

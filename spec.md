@@ -147,15 +147,15 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
 - **Slim nav** (replaces the old big "Contents" list/tree) — a quiet centred row *Welcome · Writing · Listening · Plates · Marginalia · Colophon · ◆*; the dated stream carries the page. (rotational-style; spec step 3 ✅.)
 - **Markdown editor.** Body is written in **Markdown**, not raw HTML. A tiny hand-rolled `mdToHtml()` (no library) renders both the live preview and the site. Toolbar inserts Markdown; special site bits are one-line directives (`:dropcap:`, `:fig-left: url | caption`). Toolbar redesigned as tactile "keys"; a **cheatsheet** is pinned beside the writing area; focus-stealing bug on H2/quote fixed.
 - **`#admin` is a full-screen route** (not a fold): visiting `#admin` hides the whole site and shows only the writing desk; leaving it restores the site.
+- **Real publishing pipeline (code side).** Publish now commits straight to GitHub: passphrase → PBKDF2/AES-GCM decrypt of `CONFIG.TOKEN_CIPHER` → token in memory → GET live `index.html` → parse the **live** `POSTS` block (safe across devices) → insert/replace newest-first → `PUT` with sha (409 conflict → one re-fetch + retry). Human error message per failure mode. **Image upload from device**: `<input type="file">` → base64 → committed to `images/`, `raw.githubusercontent.com` URL auto-filled (empty Cover field claims it, else inserted in body at cursor). While `TOKEN_CIPHER` is `null`, Publish falls back to local/in-memory so the desk still works.
 - **Editor niceties** — auto date (today, no field); date renders pretty ("Saturday, June 20, 2026") **below the title/preview line**; undo stack + ↶ button + Ctrl+Z; mobile-friendly (touch targets, stacks); blockquote = oxblood side-rule + upright faded text; inline **floated figures** with captions (`fig◧`/`fig◨` → `:fig-left/right:`).
 - Aesthetic + accordion-fold groundwork from earlier sessions.
 
 ### To do (next session)
-1. **Real publishing backend (the big one).** Currently `Publish` is **local-only / in-memory** (survives until refresh; no commit). To make the site usable "from anywhere, upload a pic, write, post":
-   - Re-enable the **passphrase → AES-GCM token** gate (the Unlock button is currently open; real `decryptToken` flow is written but switched off). Create a fine-grained GitHub PAT, encrypt via `encrypt-token.html`, commit ciphertext to `CONFIG.TOKEN_CIPHER`.
-   - Restore the **GitHub commit publish** (the real `publish()` is kept commented in `index.html`).
-   - **Image upload from device** — `<input type="file">` → base64 → commit into the repo (e.g. `/images/`) → use that URL. (No server; works on laptop + phone.)
-   - Deploy to GitHub Pages so login-from-anywhere actually works.
+1. **Go live (manual steps, ~10 min — the code is done, see Done ✅):**
+   - Create a **fine-grained GitHub PAT**: only repo `udvibin/the-troubled-corner`, permission **Contents: Read and write**, nothing else.
+   - Open `encrypt-token.html` locally, encrypt the PAT with a strong passphrase, paste the JSON into `CONFIG.TOKEN_CIPHER` in `index.html`. Then delete `encrypt-token.html`.
+   - Enable **GitHub Pages** on the repo (Settings → Pages → deploy from `master`), commit + push.
 2. **Day-book content model** — still pending: merge `POSTS` + `PLATES` → one chronological `ENTRIES` stream (editor still writes to `POSTS`; `PLATES` is separate). Decide the name (Day-book / Commonplace / keep Writing).
 3. **Song / Spotify embeds** — designed (click-to-load facade, host-allowlist) but not built; add a `media`/`song` field + render.
 4. **dropcat** — fun side-project, parked in `dropcat.md` (a full A–Z cat drop-cap set).
