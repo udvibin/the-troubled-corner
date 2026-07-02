@@ -54,8 +54,11 @@
   /* box-sizing:border-box = padding/border count INSIDE an element's width,
      so widths stay predictable. The * selects every element. Standard first line of any CSS. */
   *{box-sizing:border-box}
-  /* smooth scrolling for in-page #anchor jumps */
-  html{scroll-behavior:smooth}
+  /* smooth scrolling for in-page #anchor jumps. overflow-x hidden because the full-bleed
+     tailpiece is 100vw wide, and on Windows 100vw includes the scrollbar's width — without
+     this the page gets a phantom horizontal scroll exactly one scrollbar wide. */
+  html{scroll-behavior:smooth; overflow-x:hidden}
+  body{overflow-x:hidden}
 
   /* The base look of the whole page. The `font:` shorthand packs several values:
      weight(400) size(19px)/line-height(1.62) family. */
@@ -128,9 +131,13 @@
     font-family:"IM Fell DW Pica",serif; color:var(--oxblood); font-size:1.5rem; opacity:.55; transition:opacity .2s }
   .fold.open>.fold-head::after{ content:"–" }
   .fold>.fold-head:hover::after{ opacity:1 }
-  /* the body is hidden until the section has class "open" (toggled by JS) */
+  /* the body is hidden until the section has class "open" (toggled by JS). When it opens,
+     a short fade-and-settle makes the reveal feel like a page turning instead of a popup —
+     opacity + a few px of rise, no layout animation, so it stays cheap and calm. */
   .fold-body{ display:none; padding-bottom:1.8rem }
-  .fold.open>.fold-body{ display:block }
+  .fold.open>.fold-body{ display:block; animation:foldin .45s ease }
+  @keyframes foldin{ from{ opacity:0; transform:translateY(-8px) } to{ opacity:1; transform:none } }
+  @media (prefers-reduced-motion:reduce){ .fold.open>.fold-body{ animation:none } }
 
   /* slim section nav — a quiet centred row, the dated stream does the talking */
   .nav{ text-align:center; margin:1.4rem auto 2.6rem; line-height:2.1 }
@@ -196,24 +203,50 @@
   .listen li{ padding:.5rem 0; border-bottom:1px dotted var(--hairline) }
   .listen .album{ font-family:"IM Fell DW Pica",serif; font-size:1.15rem }
 
-  /* plates (photos). display:flex + flex-wrap = items sit in a row and wrap to the next line as needed. */
-  .plates{ display:flex; flex-wrap:wrap; gap:1.6rem; justify-content:center }
-  .plate{ background:#fff; padding:.5rem .5rem 1.4rem; box-shadow:0 1px 4px rgba(0,0,0,.15);
-    max-width:230px; cursor:pointer }
-  /* :nth-child(2n)/(3n) = every 2nd / every 3rd photo, given a slight tilt → scattered look */
-  .plate:nth-child(2n){ transform:rotate(-1.6deg) }
-  .plate:nth-child(3n){ transform:rotate(1.4deg) }
-  .plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
-  .plate .cap{ font-style:italic; color:var(--faded); font-size:.82em; text-align:center; margin-top:.4rem }
-
   /* links */
   .links{ list-style:none; padding:0; margin:0 }
   .links li{ padding:.4rem 0 }
   .links .note{ color:var(--faded); font-size:.9em }
 
   /* footer */
-  footer{ text-align:center; padding:3rem 0 4rem; color:var(--faded); font-size:.9em }
+  footer{ text-align:center; padding:3rem 0 0; color:var(--faded); font-size:.9em }
   footer .colophon{ font-style:italic; margin:.6rem 0 }
+
+  /* THE TAILPIECE — the closing engraving at the very end of the "book" (old presses called
+     this a cul-de-lampe: a small scene printed after the text ends). It's one hand-drawn
+     inline SVG. Full-bleed: 100vw wide even though the page column is narrow — the calc()
+     margin pulls it back to the viewport's left edge from inside the centred column.
+     The scene's field is the last thing on the page. */
+  /* keep every word of the page painting ABOVE the tailpiece ghost that rises behind it */
+  main{ position:relative; z-index:1 }
+  /* THE SINKING PAGE. The full engraving, nothing cropped — instead the whole plate is
+     pulled UP (negative top margin) so it starts behind the last of the content, and its
+     mask keeps the overlapped region a near-invisible ghost: no ink at the top, ~14% a
+     third in, solid by two-thirds. The site doesn't hand over to the image; it sinks into
+     it. multiply melts the scan's cream paper into our ivory so only the ink lands (the
+     site's grain/foxing shows through); the wash pulls the ink toward the page's quiet. */
+  .tailpiece{ position:relative; width:100vw; margin:-24vw calc(50% - 50vw) 0 }
+  .tailpiece img{ display:block; width:100%; height:auto;
+    mix-blend-mode:multiply; filter:brightness(1.05) contrast(.94);
+    -webkit-mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.14) 32%,#000 62%);
+            mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.14) 32%,#000 62%) }
+  /* The footer text stays on paper, and the ghost of the sky condenses beneath it —
+     relative + z-index keep the words crisp above the plate rising behind them. */
+  .tp-text{ position:relative; z-index:1; text-align:center; margin:0 0 1.8rem }
+  .tp-title{ font-size:1.35rem; letter-spacing:.06em; color:var(--ink) }
+  .tp-tag{ font-style:italic; color:var(--faded); margin:.15em 0 .7em }
+  .tp-links{ font-variant:small-caps; letter-spacing:.1em }
+  .tp-links a{ margin:0 .35em }
+  .tp-legal{ font-size:.85em; color:var(--faded); margin-top:.7em }
+  /* the animated wisp rides the engraved pipe-smoke (%s of the full plate) */
+  .tp-smoke{ position:absolute; z-index:1; left:22%; top:33%; width:6%; height:24%; pointer-events:none }
+  .tp-smoke svg{ width:100%; height:100% }
+  /* The one moving thing on the whole site: the smoke, swaying gently.
+     transform-box makes the skew pivot around the smoke's own base, not the page corner. */
+  .smoke{ transform-box:fill-box; transform-origin:50% 100%; animation:drift 9s ease-in-out infinite alternate }
+  @keyframes drift{ from{ transform:skewX(-2deg) } to{ transform:skewX(5deg) } }
+  /* users who ask their OS for less motion get a still curl instead */
+  @media (prefers-reduced-motion:reduce){ .smoke{ animation:none } }
 
   /* back-to-top button. position:fixed = stays pinned to the screen corner while you scroll
      (vs the page). It starts invisible (opacity:0); JS adds .show past 600px of scroll. */
@@ -221,11 +254,6 @@
     background:var(--paper); border:1px solid var(--hairline); border-radius:50%;
     width:46px; height:46px; cursor:pointer; opacity:0; transition:opacity .3s ease; line-height:44px; text-align:center }
   #totop.show{ opacity:.85 }
-
-  /* lightbox = the full-screen overlay when you click a photo. inset:0 = pin to all four edges. */
-  #lightbox{ position:fixed; inset:0; background:rgba(20,18,14,.9); display:none;
-    align-items:center; justify-content:center; cursor:zoom-out; z-index:50; padding:30px }
-  #lightbox img{ max-width:92vw; max-height:92vh; box-shadow:0 0 40px rgba(0,0,0,.6) }
 
   /* ---- ADMIN / writing desk ----
      #admin is hidden normally. Visiting #admin adds .admin-mode to <body>: that hides every
@@ -287,6 +315,9 @@
     /* the writing area + cheatsheet stack on phones */
     .editor-row{ flex-direction:column }
     .cheat{ position:static; flex-basis:auto; width:100% }
+    /* footer text a step smaller on phones; the wisp is too tiny to matter there */
+    .tp-title{ font-size:1.15rem } .tp-tag{ font-size:.9rem } .tp-links{ font-size:.95rem } .tp-legal{ font-size:.8rem }
+    .tp-smoke{ display:none }
   }
 </style>
 </head>
@@ -317,9 +348,6 @@ const POSTS = [
 const LISTENING = [
   { album:"Selected Ambient Works 85–92", artist:"Aphex Twin", note:"for grey afternoons", url:"https://www.youtube.com/results?search_query=aphex+twin+selected+ambient+works" }
 ];
-const PLATES = [
-  // { src:"https://…/photo.jpg", caption:"a window, somewhere", date:"2026-05" }
-];
 const LINKS = [
   { title:"From Jason", url:"https://www.fromjason.xyz/", note:"the inspiration for this place" },
   { title:"near.blog", url:"https://near.blog/", note:"simple is enough" }
@@ -347,12 +375,20 @@ const CONFIG = {
 
 <!-- MASTHEAD: the title block. The <svg> is a hand-drawn ornament (also the easter egg). -->
 <header class="mast wrap">
-  <!-- inline ornament so there are zero dead external image links; swap for a woodcut SVG/PNG URL anytime -->
-  <svg class="ornament" viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="1.2" id="ornament" aria-label="ornament">
-    <path d="M10 30 H45 M75 30 H110"/>
-    <circle cx="60" cy="30" r="9"/>
-    <path d="M60 12 L66 24 M60 12 L54 24 M60 48 L66 36 M60 48 L54 36"/>
-    <path d="M45 30 q15 -14 15 0 q0 14 15 0" />
+  <!-- The site's printer's device: a brimmed hat and a curl of smoke — the same fellow who
+       rests under the tree in the footer engraving. Inline SVG, stroke-drawn to read like a
+       small engraving. (Also the easter egg: click it.) -->
+  <svg class="ornament" viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="1.2" id="ornament" aria-label="a hat and a curl of smoke">
+    <!-- brim: one long sweep, echoed by a shorter inner line -->
+    <path d="M16 42 C40 51 80 51 104 42"/>
+    <path d="M30 41 C48 47 72 47 90 41" opacity=".45"/>
+    <!-- crown, with its band -->
+    <path d="M40 44 C40 24 48 15 60 15 C72 15 80 24 80 44"/>
+    <path d="M40 35 C52 41 68 41 80 35"/>
+    <!-- three hatch strokes = engraved shading on the crown's right -->
+    <path d="M68 21 L74 27 M72 19 L78 25 M75 24 L80 29" opacity=".5" stroke-width="1"/>
+    <!-- the smoke, curling off past the brim -->
+    <path d="M97 38 C105 31 93 26 101 18 C107 12 102 8 108 3" opacity=".55"/>
   </svg>
   <h1>— the troubled corner —</h1>
   <p class="tagline">notes, plates &amp; all the other things which irk me</p>
@@ -360,7 +396,7 @@ const CONFIG = {
   <p class="printmark" id="printmark">✦ set by hand, pressed once, kept forever ✦</p>
 </header>
 
-<div class="stars">★ ★ ★ ★ ★</div>
+<div class="stars">★ ❦ ★</div>
 
 <!-- HOME: the long scrolling page. The router (in JS) hides this whole block
      when you visit the colophon "page", and shows it again otherwise. -->
@@ -395,12 +431,6 @@ const CONFIG = {
   <section id="listening" class="fold">
     <h2 class="sec fold-head">Listening</h2>
     <div class="fold-body"><ul class="listen" id="listening-list"></ul></div>
-  </section>
-
-  <!-- Plates (photos) -->
-  <section id="plates" class="fold">
-    <h2 class="sec fold-head">Plates</h2>
-    <div class="fold-body"><div class="plates" id="plates-list"></div></div>
   </section>
 
   <!-- Marginalia (links) -->
@@ -467,9 +497,33 @@ const CONFIG = {
 </main>
 
 <footer class="wrap">
-  <div class="stars">★ ★ ★ ★ ★</div>
-  <div class="colophon">Set in IM Fell DW Pica, with Royal Initialen drop caps. Hand-built, no frameworks.</div>
-  <div><span id="year"></span> · <a href="mailto:udayg693@gmail.com">email</a> · <a href="https://github.com/udvibin/the-troubled-corner">github</a></div>
+  <!-- footer text first, ON the paper; the plate below pulls itself up behind these words -->
+  <div class="tp-text">
+    <div class="tp-title">— the troubled corner —</div>
+    <!-- placeholders: swap these lines/links for whatever this footer should say -->
+    <div class="tp-tag">a quiet corner, kept by hand</div>
+    <nav class="tp-links" aria-label="footer">
+      <a href="mailto:udayg693@gmail.com">email</a> ·
+      <a href="https://github.com/udvibin/the-troubled-corner">github</a> ·
+      <a href="#nav">elsewhere</a>
+    </nav>
+    <div class="tp-legal"><span id="year"></span> · set by hand, pressed once</div>
+  </div>
+  <!-- THE TAILPIECE. The full closing engraving (images/tailpiece.jpg), risen behind the
+       end of the page — the "sinking page" blend. The animated wisp (.tp-smoke) rides the
+       man's engraved pipe-smoke — the only moving thing on the site. -->
+  <div class="tailpiece">
+    <img src="images/tailpiece.jpg" alt="engraving: a man in a brimmed hat rests against an oak, smoking, watching a huge cloud and a red half-set sun over an open field">
+    <!-- the living smoke: a faint thread rising from where the engraved smoke ends -->
+    <div class="tp-smoke" aria-hidden="true">
+      <svg viewBox="0 0 60 240" fill="none">
+        <g class="smoke">
+          <path d="M32 240 C44 205 16 175 30 138 C42 106 20 74 32 40 C38 24 30 12 34 0"
+                stroke="#1f1b16" stroke-width="2.4" opacity=".28" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
 </footer>
 
 <!-- ADMIN: the writing desk. It's still in this one file, but the #admin route hides the whole
@@ -568,9 +622,8 @@ Blank line between paragraphs."></textarea>
   <select id="existing"><option value="">— new post —</option></select>
 </section>
 
-<!-- These two live outside everything because they float over the page (position:fixed). -->
+<!-- Lives outside everything because it floats over the page (position:fixed). -->
 <div id="totop" title="back to top">☞</div>
-<div id="lightbox"><img alt=""></div>
 
 <!--
   ============================ BEHAVIOUR ============================
@@ -593,7 +646,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
 // Slim horizontal nav: just the sections, separated by a faded dot, plus the discreet ◆ writing desk.
 // The dated stream below carries the page; no big index of every post to scroll past.
 function renderNav(){
-  const secs = [['about','Welcome'],['writing','Writing'],['listening','Listening'],['plates','Plates'],['marginalia','Marginalia'],['colophon','Colophon']];
+  const secs = [['about','Welcome'],['writing','Writing'],['listening','Listening'],['marginalia','Marginalia'],['colophon','Colophon']];
   $('#nav').innerHTML =
     secs.map(([id,name])=>`<a href="#${id}" data-fold="${id}">${name}</a>`).join('<span class="dot">·</span>')
     + `<a href="#admin" class="adm" title="writing desk">◆</a>`;
@@ -621,15 +674,6 @@ function renderListening(){
     const li = el('li'); li.innerHTML = `<span class="album">${m.album}</span> — ${m.artist}` +
       (m.note?` <span class="faded">· ${m.note}</span>`:'') + (m.url?` <a href="${m.url}">↗</a>`:'');
     ul.appendChild(li);
-  }
-}
-function renderPlates(){
-  const box = $('#plates-list'); box.innerHTML='';
-  for(const p of PLATES){
-    const d = el('div','plate'); d.innerHTML = `<img src="${p.src}" alt="${p.caption||''}">` +
-      (p.caption?`<div class="cap">${p.caption}${p.date?` · ${p.date}`:''}</div>`:'');
-    d.querySelector('img').addEventListener('click',()=>openLightbox(p.src)); // click photo → lightbox
-    box.appendChild(d);
   }
 }
 function renderLinks(){
@@ -685,7 +729,7 @@ function mdBlock(b){
 }
 function mdToHtml(md){ return (md||'').replace(/\r/g,'').split(/\n{2,}/).map(mdBlock).filter(Boolean).join('\n'); }
 
-function renderAll(){ renderNav(); renderWriting(); renderListening(); renderPlates(); renderLinks(); }
+function renderAll(){ renderNav(); renderWriting(); renderListening(); renderLinks(); }
 renderAll(); // do it once on load
 
 /* ---------- accordion: each section is a fold; only one open at a time ----------
@@ -705,7 +749,7 @@ function toggleFold(f){
 }
 setOpenFold('about');   // open Welcome by default so the page isn't just a list of headings
 
-/* ---------- interactions: open posts, copy links, lightbox, back-to-top, easter egg ---------- */
+/* ---------- interactions: open posts, copy links, back-to-top, easter egg ---------- */
 function openPost(slug){
   const a = document.getElementById('post-'+slug);
   if(!a) return;
@@ -730,10 +774,6 @@ document.addEventListener('click', e=>{
 });
 // If someone arrives with a #post-… link, open that post on load.
 if(location.hash.startsWith('#post-')) openPost(location.hash.slice(6));
-
-// lightbox: show the clicked photo full-screen; click anywhere to close.
-function openLightbox(src){ const lb=$('#lightbox'); lb.querySelector('img').src=src; lb.style.display='flex'; }
-$('#lightbox').addEventListener('click',()=> $('#lightbox').style.display='none');
 
 // back-to-top button: scroll to the contents; only show it after scrolling down a bit.
 const totop = $('#totop');
