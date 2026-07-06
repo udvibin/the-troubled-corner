@@ -533,7 +533,7 @@ const CONFIG = {
     <a href="https://www.fromjason.xyz/">From Jason</a> and <a href="https://near.blog/">near.blog</a>,
     which showed that a personal site can just be calm and yours.</p>
 
-  <p style="margin-top:2rem"><a href="#">back to the top <svg class="orn orn-fern up"><use href="#o-fern"/></svg></a></p>
+  <p style="margin-top:2rem"><a href="#" data-home>back to the top <svg class="orn orn-fern up"><use href="#o-fern"/></svg></a></p>
   </div>
 
 </main>
@@ -566,7 +566,7 @@ const CONFIG = {
 <section id="admin" class="wrap">
   <div class="topline">
     <h2 class="sec" style="margin:0">the writing desk</h2>
-    <a href="#"><svg class="orn orn-fern flip"><use href="#o-fern"/></svg> back to the site</a>
+    <a href="#" data-home><svg class="orn orn-fern flip"><use href="#o-fern"/></svg> back to the site</a>
   </div>
 
   <!-- THE GATE. The desk stays closed until the passphrase turns in the lock: the same
@@ -680,11 +680,14 @@ Blank line between paragraphs."></textarea>
   <span class="label">Live preview — exactly how it will look on the site</span>
   <div id="preview"></div>
 
+  <!-- Save and Delete only stage changes on the page in front of you; nothing touches
+       GitHub until "Publish changes" presses the whole batch as ONE commit. -->
   <div class="actions">
-    <button class="btn" id="publish">Publish</button>
+    <button class="btn" id="save">Save entry</button>
     <button class="btn ghost" id="clear">New / clear</button>
     <!-- only shown while an existing entry is loaded below; asks before it acts -->
     <button class="btn ghost" id="delete" style="display:none">Delete</button>
+    <button class="btn" id="press" style="display:none">Publish changes</button>
     <span id="msg"></span>
   </div>
   <span class="label">Edit or delete an existing entry</span>
@@ -866,6 +869,8 @@ $('#wake').addEventListener('click', e=>{ e.preventDefault(); wakeArchive();
 // One click listener on the whole document ("event delegation") handles every door and
 // ledger row, even after a re-render — cheaper than a listener per element.
 document.addEventListener('click', e=>{
+  const home=e.target.closest('[data-home]');                        // "back to the site/top"?
+  if(home){ e.preventDefault(); goHome(); scrollTo({top:0, behavior:'smooth'}); return; }
   const door=e.target.closest('[data-door]');                        // a door at the foot?
   if(door){ e.preventDefault();
     const v=document.getElementById(door.dataset.door);
@@ -900,6 +905,9 @@ $('#ornament').addEventListener('click',()=>{ const m=$('#printmark'); m.style.d
 function route(){ document.body.classList.toggle('admin-mode', location.hash==='#admin');
   if(location.hash==='#admin'){ scrollTo(0,0);
     if(!$('#admin').classList.contains('unlocked')) $('#gate-pass').focus(); } }
+// leave the desk / go home WITHOUT the dangling "#" that location.hash='' leaves in the
+// URL — replaceState rewrites the address cleanly, then route() re-reads it.
+function goHome(){ history.replaceState(null, '', location.pathname+location.search); route(); }
 addEventListener('hashchange', route); route();
 
 const body = $('#f-body');
@@ -1122,73 +1130,86 @@ async function gh(path, opts={}){
   return r.json();
 }
 
-// Fetch the live index.html, apply ONE change to its ENTRIES block, commit it back.
-// `add` = an entry to insert (or null); `remove` = an entry to take out (or null).
-//   publish new  → add only          publish edit → add + remove the original
-//   delete       → remove only
-// Essays are matched by slug, small entries by type+date+text (see sameEntry).
-async function commitChange(add, remove, retried){
+/* ---------- staging: pile up changes, press them all in ONE commit ----------
+   Save and Delete only change the page in front of you (instant — flip back to the
+   site and look). Each becomes an op {add, remove} in the `pending` queue:
+     new entry → add only     edit → add + remove the original     delete → remove only
+   "Publish changes" fetches the LIVE file, replays every queued op onto it, and PUTs
+   once — so a batch of five edits is one commit, and entries posted meanwhile from
+   another device survive untouched. Pending work lives in memory only; the browser
+   warns before a refresh would abandon it. */
+let pending=[];
+function applyOp(list, op){                       // one op onto one list, newest first
+  const out=list.filter(x=> !sameEntry(x,op.remove) && !sameEntry(x,op.add));
+  if(op.add) out.unshift(op.add);
+  return out.sort(byDateDesc);
+}
+function stage(add, remove){
+  pending.push({add, remove});
+  const next=applyOp(ENTRIES, {add, remove});
+  ENTRIES.length=0; ENTRIES.push(...next);
+  renderAll(); populateExisting();
+  $('#clear').click();
+  const n=pending.length;
+  $('#press').style.display=''; $('#press').textContent=`Publish ${n} change${n>1?'s':''}`;
+}
+addEventListener('beforeunload', e=>{ if(pending.length) e.preventDefault(); });
+
+$('#save').addEventListener('click', ()=>{
+  const p = gather();
+  if(p.type==='essay'   && (!p.title || !p.slug)) return msg('Title and slug are required.', true);
+  if(p.type==='picture' && !p.src)                return msg('A picture needs its image URL.', true);
+  if((p.type==='song'||p.type==='inspiration') && !p.text) return msg('Write the line first.', true);
+  stage(p, editing);
+  msg(`Saved — ${pending.length} change${pending.length>1?'s':''} waiting. Publish when ready.`);
+});
+
+$('#delete').addEventListener('click', ()=>{
+  if(!editing) return;
+  if(!confirm('Delete this entry? (It goes for real when you hit Publish changes.)')) return;
+  stage(null, editing);
+  msg(`Marked for deletion — ${pending.length} change${pending.length>1?'s':''} waiting.`);
+});
+
+// fetch the live file, replay the whole queue onto its ENTRIES block, commit ONCE
+async function commitOps(retried){
   const file = await gh(`index.html?ref=${CONFIG.BRANCH}`);
   const src  = b64ToUtf8(file.content);
   const A='// === ENTRIES_START ===', B='// === ENTRIES_END ===';
   const a=src.indexOf(A), b=src.indexOf(B);
   if(a<0 || b<a) throw new Error('ENTRIES markers missing in the live file.');
-  const block   = src.slice(a+A.length, b);
-  const entries = JSON.parse(block.slice(block.indexOf('['), block.lastIndexOf(']')+1)); // just the [...] between the markers
-  let next = entries.filter(x=> !sameEntry(x,remove) && !sameEntry(x,add));
-  if(add) next=[add, ...next];
-  next.sort(byDateDesc);
+  const block = src.slice(a+A.length, b);
+  let next = JSON.parse(block.slice(block.indexOf('['), block.lastIndexOf(']')+1)); // just the [...] between the markers
+  for(const op of pending) next = applyOp(next, op);
   const what = w => (w.title || w.text || w.caption || w.src || 'entry').slice(0,60);
-  const message = add ? `${remove?'edit':'new'} ${add.type}: ${what(add)}` : `delete ${remove.type}: ${what(remove)}`;
+  const one  = pending[0];
+  const message = pending.length>1 ? `press: ${pending.length} changes`
+    : one.add ? `${one.remove?'edit':'new'} ${one.add.type}: ${what(one.add)}`
+    : `delete ${one.remove.type}: ${what(one.remove)}`;
   const out = src.slice(0, a+A.length) + '\nconst ENTRIES = ' + JSON.stringify(next, null, 2) + ';\n' + src.slice(b);
   try{
     await gh('index.html', { method:'PUT',
       body: JSON.stringify({ message, content:utf8ToB64(out), sha:file.sha, branch:CONFIG.BRANCH }) });
   }catch(e){
-    if(e.status===409 && !retried) return commitChange(add, remove, true); // sha moved under us → one re-fetch + retry
+    if(e.status===409 && !retried) return commitOps(true);   // sha moved under us → one re-fetch + replay + retry
     throw e;
   }
   return next;
 }
 
-// shared tail for publish/delete: swap in the new list, re-render, reset the desk
-function showNext(next, slug){
-  ENTRIES.length=0; ENTRIES.push(...next); renderAll(); populateExisting();
-  editing=null; $('#existing').value=''; $('#delete').style.display='none';
-  setTimeout(()=>{ location.hash=''; if(slug) openPost(slug); }, 900);
-}
-
-$('#publish').addEventListener('click', async ()=>{
-  const p = gather(), original = editing;
-  if(p.type==='essay'   && (!p.title || !p.slug)) return msg('Title and slug are required.', true);
-  if(p.type==='picture' && !p.src)                return msg('A picture needs its image URL.', true);
-  if((p.type==='song'||p.type==='inspiration') && !p.text) return msg('Write the line first.', true);
-  if(!CONFIG.TOKEN_CIPHER){                                     // no encrypted token committed yet → local-only behaviour
-    showNext([p, ...ENTRIES.filter(x=>!sameEntry(x,original) && !sameEntry(x,p))].sort(byDateDesc), p.slug);
-    return msg('Published locally only — no TOKEN_CIPHER in CONFIG yet (gone on refresh).');
+$('#press').addEventListener('click', async ()=>{
+  if(!pending.length) return;
+  if(!CONFIG.TOKEN_CIPHER){                       // no token configured → the local view is all there is
+    pending=[]; $('#press').style.display='none';
+    return msg('Applied locally only — no TOKEN_CIPHER in CONFIG yet (gone on refresh).');
   }
   try{
-    msg('Unlocking…');               await getToken();
-    msg('Committing to GitHub…');    const next = await commitChange(p, original);
-    msg('Committed ✓ — live on the site in about a minute.');
-    showNext(next, p.slug);
-  }catch(err){ msg(err.message, true); }
-});
-
-// Delete the loaded entry — asks first; commits the removal through the same flow.
-$('#delete').addEventListener('click', async ()=>{
-  if(!editing) return;
-  if(!confirm('Delete this entry for good?')) return;
-  const doomed = editing;
-  if(!CONFIG.TOKEN_CIPHER){
-    showNext(ENTRIES.filter(x=>!sameEntry(x,doomed)));
-    return msg('Deleted locally only — no TOKEN_CIPHER in CONFIG yet (back on refresh).');
-  }
-  try{
-    msg('Unlocking…');               await getToken();
-    msg('Committing the removal…');  const next = await commitChange(null, doomed);
-    msg('Deleted ✓ — gone from the site in about a minute.');
-    showNext(next);
+    msg('Committing to GitHub…');   await getToken();          // already unlocked at the gate; cached
+    const next = await commitOps();
+    ENTRIES.length=0; ENTRIES.push(...next); renderAll(); populateExisting();
+    pending=[]; $('#press').style.display='none';
+    msg('Pressed ✓ — live on the site in about a minute.');
+    setTimeout(goHome, 900);
   }catch(err){ msg(err.message, true); }
 });
 
