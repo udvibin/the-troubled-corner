@@ -348,11 +348,11 @@
 <script>
 // ONE dated stream — the day-book. Every item is an entry with a "type":
 //   essay       — the big one: slug, title, date, preview (one-liner for the archive),
-//                 body (Markdown), cover (image url or null), songs [{artist,song,url}]
+//                 body (Markdown), cover (image url or null), songs [{song,url}]
 //                 that share its date line (the desk's Link/Song fields add one)
 //   song        — one quiet line: date, text (your words, Markdown), url, song
-//                 (track/album name — the desk auto-fills it from a Spotify link and
-//                 it renders as the hyperlink), artist (typed by hand)
+//                 (track/album/playlist name — the desk auto-fills it from a Spotify
+//                 link; it renders after a fern as the hyperlink)
 //   inspiration — one quiet line: date, text, url (optional)
 //   picture     — a small plate: date, src (image url), caption
 // The START/END markers are how the in-site editor finds this block when publishing —
@@ -617,12 +617,12 @@ const CONFIG = {
     <span class="label">Link URL <span class="faded">(optional — Spotify album links open the app on phones)</span></span>
     <input id="f-url" placeholder="https://open.spotify.com/album/…">
   </div>
-  <!-- what the link points at. Song name fills itself from a Spotify link (fetchMeta);
-       Spotify won't tell browsers the artist, so that one's yours to type -->
-  <div id="g-song" class="row">
-    <div><span class="label">Song / album name <span class="faded">(auto-fills from the link)</span></span>
-      <input id="f-song" placeholder="fills itself when you paste a link…"></div>
-    <div><span class="label">Artist</span><input id="f-artist" placeholder="who it's by"></div>
+  <!-- what the link points at, straight from Spotify's oEmbed. The title is ALL
+       Spotify will tell a browser (the artist lives behind CORS) — so this one field
+       is the whole story, and it fills itself. -->
+  <div id="g-song">
+    <span class="label">Song / album / playlist name <span class="faded">(fills itself from the link)</span></span>
+    <input id="f-song" placeholder="fills itself when you paste a link…">
   </div>
 
   <div id="g-body">
@@ -745,12 +745,13 @@ function endMark(html){
 }
 function essayBody(e){ return (e.cover?`<img class="cover" src="${e.cover}" alt="">`:'') + endMark(mdToHtml(e.body)); }
 
-// A small entry's line: your words first, then "Artist – Song/Album" pulled from the
-// link, with the NAME as the hyperlink. No name saved? The words themselves link out.
+// A small entry's line: your words first, then the fern pointing at the song/album/
+// playlist name pulled from the link — the name IS the hyperlink. No name saved?
+// The words themselves link out. (e.artist still renders if an old entry saved one.)
 function smallLine(e){
   const line = mdInline(e.text||'');
   const name = e.song ? (e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${e.song}</a>` : e.song) : '';
-  if(name) return `${line}${line?' · ':''}${e.artist ? e.artist+' – ' : ''}${name}`;
+  if(name) return `${line}${line?` ${stamp('o-fern','orn-fern')} `:''}${e.artist ? e.artist+' – ' : ''}${name}`;
   return e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${line}</a>` : line;
 }
 
@@ -938,8 +939,7 @@ function gather(){
   const type=$('#f-type').value;
   const date=editing ? editing.date : new Date().toISOString().slice(0,10);
   if(type==='essay'){
-    const s={ artist:$('#f-artist').value.trim()||null, song:$('#f-song').value.trim()||null,
-              url:$('#f-url').value.trim()||null };
+    const s={ song:$('#f-song').value.trim()||null, url:$('#f-url').value.trim()||null };
     return { type,
       slug: $('#f-slug').value.trim() || slugify($('#f-title').value),
       title: $('#f-title').value.trim(), date,
@@ -953,7 +953,7 @@ function gather(){
   if(type==='picture') return { type, date,
     src: $('#f-cover').value.trim(), caption: $('#f-preview').value.trim() };
   const small={ type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
-  if(type==='song'){ small.song=$('#f-song').value.trim()||null; small.artist=$('#f-artist').value.trim()||null; }
+  if(type==='song') small.song=$('#f-song').value.trim()||null;
   return small;
 }
 // Two entries are "the same one": essays whenever slugs match; small entries when
@@ -1053,7 +1053,7 @@ body.addEventListener('keydown', e=>{
 // auto-slug from title until the slug is edited by hand.
 $('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $('#f-slug').value=slugify(e.target.value); syncPreview(); });
 $('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
-['#f-preview','#f-cover','#f-url','#f-song','#f-artist'].forEach(s=> $(s).addEventListener('input', syncPreview));
+['#f-preview','#f-cover','#f-url','#f-song'].forEach(s=> $(s).addEventListener('input', syncPreview));
 
 // SONG/ALBUM NAME, AUTOMATICALLY: pasting a Spotify link (track, album, playlist —
 // all work) asks Spotify's public oEmbed endpoint for its title and drops it into the
@@ -1093,7 +1093,7 @@ $('#existing').addEventListener('change', e=>{
   $('#f-title').value=p.title||''; $('#f-slug').value=p.slug||''; $('#f-slug').dataset.touched = p.slug?'1':'';
   $('#f-preview').value = p.type==='picture' ? (p.caption||'') : (p.preview||'');
   $('#f-cover').value   = p.type==='picture' ? (p.src||'')     : (p.cover||'');
-  $('#f-url').value=p.url||''; $('#f-song').value=p.song||''; $('#f-artist').value=p.artist||'';
+  $('#f-url').value=p.url||''; $('#f-song').value=p.song||'';
   body.value = p.type==='essay' ? (p.body||'') : (p.text||'');
   history=[body.value]; hi=0;
   $('#delete').style.display='';
@@ -1279,7 +1279,7 @@ $('#f-image').addEventListener('change', async e=>{
   }catch(err){ msg(err.message, true); }
 });
 $('#clear').addEventListener('click', ()=>{
-  ['f-title','f-slug','f-preview','f-cover','f-url','f-song','f-artist'].forEach(f=>$('#'+f).value='');
+  ['f-title','f-slug','f-preview','f-cover','f-url','f-song'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
   editing=null; $('#existing').value=''; $('#delete').style.display='none';
   body.value=''; history=['']; hi=0; syncPreview(); msg('');

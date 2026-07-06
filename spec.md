@@ -186,8 +186,36 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    letterboxd profiles wired; footer = "all of it, by me · since 2026" + "more of me"
    with the fern pointing at the link row).
 3. ~~Go live for publishing~~ ✅ done 2026-07-05 — TOKEN_CIPHER set in CONFIG,
-   encrypt-token.html deleted. Publishing works from any device with the passphrase.
+   encrypt-token.html deleted (recoverable from git history if a re-key is ever
+   needed). Publishing verified end-to-end from the live site (2026-07-07: the desk
+   made real commits). Re-keyed once after a forgotten passphrase.
 4. **Commit housekeeping**: `images/tailpiece.png` (3.8MB original) should be deleted.
+
+### Landed since the build (2026-07-06 → 07)
+- **The desk is gated**: `#admin` shows one centred passphrase field (with a
+  show/hide toggle); the form appears only after the passphrase decrypts the token
+  (`unlock()` → same `getToken` crypto — a door in front of the real lock). While
+  TOKEN_CIPHER is null the desk opens directly (local-only mode).
+- **Batched publishing**: Save/Delete only stage ops (`pending` queue) and re-render
+  the local page; "Publish N changes" replays the queue onto the freshly-fetched live
+  file and PUTs ONE commit (sha + 409 retry preserved). `beforeunload` guards staged
+  work. Image uploads still commit immediately (their URL must exist first).
+- **Delete + edit any entry** from the desk dropdown; edits keep the original date.
+- **Song lines, final design**: your words (never a link) · fern · the track/album/
+  playlist **name as the hyperlink**. The name auto-fills from a Spotify link via
+  their public oEmbed endpoint (CORS-open; title+thumbnail only). **Artist is
+  unfetchable browser-side** — confirmed: oEmbed has no artist field, the embed page
+  has it but sends no CORS header, the real API needs credentials a serverless site
+  can't hold — so there is no artist field; old saved `artist`/`art` fields render/
+  are ignored harmlessly. Album-art experiment (oxblood duotone stamp) was tried and
+  rejected — links, not pictures.
+- **Essays can carry date-line songs from the desk**: the same Link/Song fields on
+  the essay form append `{song,url}` to `songs[]`; existing songs survive edits
+  (removal = hand-edit, deliberately). Listening register uses the same line design,
+  tagged `· with "essay title"`.
+- **No manicule anywhere**: ferns point everywhere instead (flipped = back, rotated
+  = up/top button); colophon prose updated.
+- **Clean URLs**: leaving the desk uses `history.replaceState` (no dangling `/#`).
 5. **Trinket iterations** (Claude Design, new chat per ornament): improve ivy tendril
    (snail done in-code 2026-07-04 as a concentric spiral); unpressed: plate frame,
    smoke curl. **Masthead device**: Uday isn't sold on the hat — press candidates in
