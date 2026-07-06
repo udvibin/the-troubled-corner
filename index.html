@@ -273,6 +273,10 @@
     background:none; border:0; padding:0; cursor:pointer;
     font-family:inherit; font-style:italic; font-size:.85em; color:var(--faded) }
   .passwrap #gate-show:hover{ color:var(--oxblood) }
+  /* the link proof card: album art + title of whatever the Link URL points at */
+  #linkcard{ display:flex; gap:.7rem; align-items:center; margin-top:.5rem; font-size:.9em }
+  #linkcard:empty{ display:none }
+  #linkcard img{ width:44px; height:44px; object-fit:cover; filter:sepia(.12) saturate(.9) }
   #gate-msg{ font-style:italic; color:var(--oxblood); min-height:1.4em; margin-top:.7rem }
   #desk{ display:none }
   #admin.unlocked #gate{ display:none }
@@ -617,6 +621,8 @@ const CONFIG = {
   <div id="g-url">
     <span class="label">Link URL <span class="faded">(optional — Spotify album links open the app on phones)</span></span>
     <input id="f-url" placeholder="https://open.spotify.com/album/…">
+    <!-- the proof card: filled by linkCard() with what the link actually points at -->
+    <div id="linkcard"></div>
   </div>
 
   <div id="g-body">
@@ -1030,6 +1036,24 @@ $('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $
 $('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
 ['#f-preview','#f-cover','#f-url'].forEach(s=> $(s).addEventListener('input', syncPreview));
 
+// THE LINK PROOF CARD: when the Link URL is a Spotify link, ask Spotify's public
+// oEmbed endpoint what it points at and show the art + title — so you know the right
+// song is on the other end before pressing. Desk-only: the site itself stays
+// links-not-embeds by design. (Spotify only: YouTube's oEmbed refuses browser CORS.)
+let _linkT;
+async function linkCard(){
+  const u=$('#f-url').value.trim(), box=$('#linkcard');
+  if(!/open\.spotify\.com\//.test(u)){ box.innerHTML=''; return; }
+  try{
+    const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(u));
+    if(!r.ok) throw 0;
+    const d=await r.json();
+    box.innerHTML=`<img src="${d.thumbnail_url}" alt=""><span>${d.title}<br><span class="faded">${d.provider_name}</span></span>`;
+  }catch{ box.innerHTML='<span class="faded">couldn’t read that link — check the URL</span>'; }
+}
+// debounced so it fetches once you pause typing, not per keystroke
+$('#f-url').addEventListener('input', ()=>{ clearTimeout(_linkT); _linkT=setTimeout(linkCard, 400); });
+
 // Edit-existing dropdown: EVERY entry, newest first — essays by title, small entries
 // by "type · date · start of the line". Selecting one loads it and shows Delete.
 let existingList=[];                    // the sorted entries the dropdown indexes into
@@ -1056,6 +1080,7 @@ $('#existing').addEventListener('change', e=>{
   history=[body.value]; hi=0;
   $('#delete').style.display='';
   applyType();                          // flips the field groups + redraws the preview
+  linkCard();                           // and refreshes the link proof card
 });
 
 /* ---------- PUBLISH: commit the post straight into index.html on GitHub ----------
@@ -1239,7 +1264,7 @@ $('#clear').addEventListener('click', ()=>{
   ['f-title','f-slug','f-preview','f-cover','f-url'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
   editing=null; $('#existing').value=''; $('#delete').style.display='none';
-  body.value=''; history=['']; hi=0; syncPreview(); msg('');
+  body.value=''; history=['']; hi=0; syncPreview(); linkCard(); msg('');
 });
 
 populateExisting();
