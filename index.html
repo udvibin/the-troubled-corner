@@ -750,9 +750,9 @@ function essayBody(e){ return (e.cover?`<img class="cover" src="${e.cover}" alt=
 // The words themselves link out. (e.artist still renders if an old entry saved one.)
 function smallLine(e){
   const line = mdInline(e.text||'');
-  const name = e.song ? (e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${e.song}</a>` : e.song) : '';
+  const name = e.song ? (e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${e.song} ↗</a>` : e.song) : '';
   if(name) return `${line}${line?` ${stamp('o-fern','orn-fern')} `:''}${e.artist ? e.artist+' – ' : ''}${name}`;
-  return e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${line}</a>` : line;
+  return e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${line} ↗</a>` : line;
 }
 
 // One entry → its HTML. The editor's live preview calls this SAME function, so the
@@ -762,7 +762,7 @@ function entryHTML(e){
     const songs=(e.songs&&e.songs.length)                    // songs share the essay's date line
       ? ` <span class="wsong">· ${MARK.song} — ${e.songs.map(s=>{
           const name=`<i>${s.song||s.text||''}</i>`;         // s.text = the old field name
-          const link=s.url?`<a target="_blank" rel="noopener" href="${s.url}">${name}</a>`:name;
+          const link=s.url?`<a target="_blank" rel="noopener" href="${s.url}">${name} ↗</a>`:name;
           return `${s.artist?s.artist+' – ':''}${link}`;
         }).join(' · ')}</span>` : '';
     return `<article class="post" id="post-${e.slug}"><h2 class="t">${e.title}</h2>`+
