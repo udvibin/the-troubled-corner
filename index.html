@@ -86,15 +86,33 @@
   a{color:var(--oxblood); text-decoration:none; transition:color .25s ease}
   a:hover{text-decoration:underline}
 
-  /* Small reusable text styles. small-caps renders lowercase letters as little capitals. */
-  .display{font-family:"IM Fell DW Pica",Georgia,serif}
-  .smallcaps{font-variant:small-caps; letter-spacing:.08em}
+  /* One small reusable text style: quieter, browner ink. */
   .faded{color:var(--faded)}
-  .mono-date{font-variant:small-caps; letter-spacing:.1em; color:var(--oxblood); font-size:.82em}
 
-  /* dividers — the ★ row and thin horizontal rules between sections */
-  .stars{ text-align:center; color:var(--oxblood); letter-spacing:.6em; margin:3.2rem 0; font-size:.9em }
-  .rule{ border:0; border-top:1px solid var(--hairline); margin:2.4rem auto; max-width:var(--measure) }
+  /* ═══ TRINKET CONTROL PANEL ═══ one line per pressed ornament (the drawings themselves are
+     the <symbol> block right after <body>). Tweak a number, save, refresh — that's the loop.
+       width / height  = size (keep them equal; the marks are square, except the divider)
+       vertical-align  = up/down on the text line: MORE NEGATIVE sits LOWER (0 = baseline) */
+  .orn{ display:inline-block; width:1em; height:1em; vertical-align:-.14em; color:var(--oxblood) } /* shared defaults */
+  .fin{ width:1.45em; height:1.45em; vertical-align:-.4em }                            /* 1 seed-pod — IS the essay's final full stop */
+  .orn-div{ width:8em; height:1.65em; vertical-align:middle }                          /* 2 fleuron divider — width sets its size */
+  .divider{ text-align:center; margin:.5rem 0 }                                        /* 2b divider row — margin = gap to the text above/below */
+  .orn-fern{ width:1.35em; height:1.35em; vertical-align:-.4em }                       /* 3 fern door pointer */
+  .orn-ivy{ width:1.5em; height:1.5em; vertical-align:-.45em } .flip{ transform:scaleX(-1) } /* 4 ivy month flourish (flip mirrors it) */
+  .orn-sm{ width:.92em; height:.92em; margin-right:.18em }                             /* 5 syrinx song mark */
+  .orn-snail{ width:1.12em; height:1.12em; margin-right:.18em; vertical-align:-.22em } /* 6 inspiration spiral */
+
+  /* TRINKET TOOLTIP — a small pressed label above a mark, instant on hover (display flips:
+     no fade, none of the native title-tooltip delay). content:attr(aria-label) means ONE
+     attribute feeds both screen readers and the tooltip. The uneven padding recentres the
+     small-caps tracking's trailing gap. */
+  .tip{ position:relative; display:inline-block }
+  .tip::after{ content:attr(aria-label); position:absolute; left:50%; bottom:1.7em; transform:translateX(-50%);
+    font-variant:small-caps; font-style:normal; letter-spacing:.22em; font-size:.68em;
+    color:var(--oxblood); background:var(--paper); border:1px solid var(--hairline);
+    padding:.05em .5em .15em .72em; white-space:nowrap;
+    box-shadow:0 1px 4px rgba(31,27,22,.14); display:none; pointer-events:none; z-index:2 }
+  .tip:hover::after{ display:block }
 
   /* masthead (the big title block at the very top) */
   header.mast{ text-align:center; padding:5rem 0 1rem }
@@ -105,46 +123,52 @@
   .mast h1{ font-family:"IM Fell DW Pica",serif; font-weight:400; color:var(--oxblood);
     font-size:clamp(2.4rem,7vw,3.6rem); letter-spacing:.06em; margin:.2rem 0 .1rem; text-transform:none }
   .mast .tagline{ font-style:italic; color:var(--faded); margin:.2rem 0 1rem }
-  /* font-variant:normal cancels the small-caps from the .smallcaps class, so the byline
-     shows in the exact case you type. .mast .byline beats .smallcaps on specificity. */
-  .mast .byline{ font-variant:normal; letter-spacing:.12em; font-size:.85em;
-    border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
-    display:inline-block; padding:.4rem 1.2rem }
   /* the easter-egg line: hidden (display:none) until JS flips it on */
   .printmark{ display:none; font-style:italic; color:var(--faded); margin-top:1rem; font-size:.85em }
 
-  /* section headings */
-  section{ padding:1.4rem 0 }
-  /* headings use the SC (small-caps) cut of the same family + tracking + oxblood — the way to
-     make one font read as a heading without a second typeface. */
+  /* headings. h2.sec survives for the writing desk; the day-book itself uses h2.t below. */
   h2.sec{ font-family:"IM Fell DW Pica SC",serif; font-weight:400; color:var(--oxblood);
     letter-spacing:.1em; font-size:1.7rem; margin:0 0 1.2rem }
-  /* subheadings: same font, italic, to sit a step below the small-caps h2 */
+  /* subheadings (the colophon uses these): same font, italic, a step below */
   h3{ font-family:"IM Fell DW Pica",serif; font-weight:400; font-style:italic; font-size:1.35rem; margin:1.6rem 0 .4rem }
 
-  /* --- ACCORDION FOLDS: a section collapsed to just its heading until it gets class "open" --- */
-  .fold{ border-top:1px solid var(--hairline); padding:0 }          /* a hairline separates the headings */
-  /* the whole heading is the click target; right padding leaves room for the +/– marker */
-  .fold>.fold-head{ cursor:pointer; user-select:none; position:relative; margin:0; padding:1.05rem 1.8rem 1.05rem 0 }
-  /* ::after = a generated marker (not in the HTML) showing open/closed at the heading's right edge */
-  .fold>.fold-head::after{ content:"+"; position:absolute; right:.1rem; top:50%; transform:translateY(-50%);
-    font-family:"IM Fell DW Pica",serif; color:var(--oxblood); font-size:1.5rem; opacity:.55; transition:opacity .2s }
-  .fold.open>.fold-head::after{ content:"–" }
-  .fold>.fold-head:hover::after{ opacity:1 }
-  /* the body is hidden until the section has class "open" (toggled by JS). When it opens,
-     a short fade-and-settle makes the reveal feel like a page turning instead of a popup —
-     opacity + a few px of rise, no layout animation, so it stays cheap and calm. */
-  .fold-body{ display:none; padding-bottom:1.8rem }
-  .fold.open>.fold-body{ display:block; animation:foldin .45s ease }
-  @keyframes foldin{ from{ opacity:0; transform:translateY(-8px) } to{ opacity:1; transform:none } }
-  @media (prefers-reduced-motion:reduce){ .fold.open>.fold-body{ animation:none } }
+  /* ═══ THE STREAM ═══ the day-book: essays printed in full, small entries between them.
+     Nothing sits between the masthead and the newest entry — you land in the book. */
+  h2.t{ text-align:center; font-weight:400; font-size:1.9rem; margin:3rem 0 .15rem }    /* essay title */
+  /* the date line under a title. EVERY date on the page shares one voice: 16px (px, so no
+     parent's em shrinks it), small caps, oxblood, upright — even inside italic song lines. */
+  .when{ text-align:center; font-variant:small-caps; letter-spacing:.2em; color:var(--oxblood); font-size:16px; margin:0 0 1.5rem }
+  .when .wsong{ font-variant:normal; letter-spacing:normal; font-style:italic; color:var(--faded) } /* the song half of a date line */
+  .d{ font-variant:small-caps; font-style:normal; letter-spacing:.2em; color:var(--oxblood); font-size:16px; white-space:nowrap }
+  .small-entry{ text-align:center; color:var(--faded); font-style:italic; margin:1.5rem 0; font-size:.97em }
+  figure.plate{ margin:2.2rem auto; max-width:340px; text-align:center }   /* a small pasted photograph */
+  figure.plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
+  figure.plate figcaption{ font-style:italic; color:var(--faded); font-size:.85em; margin-top:.45rem }
 
-  /* slim section nav — a quiet centred row, the dated stream does the talking */
-  .nav{ text-align:center; margin:1.4rem auto 2.6rem; line-height:2.1 }
-  .nav a{ font-family:"IM Fell DW Pica",serif; color:var(--oxblood); font-size:1.08rem; padding:0 .1rem }
-  .nav a:hover{ text-decoration:underline }
-  .nav .dot{ color:var(--faded); opacity:.55; margin:0 .55rem }
-  .nav .adm{ opacity:.32; margin-left:.7rem }      /* the discreet writing-desk diamond */
+  /* ═══ THE ARCHIVE ═══ everything older than the stream: a month-headed ledger,
+     asleep (display:none) until the wake line is clicked. */
+  .ledger{ max-width:800px; margin:0 auto }
+  .lrow{ display:grid; grid-template-columns:104px 1fr; gap:1.3rem; border-top:1px solid var(--hairline); padding:1rem 0 }
+  .lrow .gut{ text-align:right; padding-top:.3rem }                        /* the date gutter */
+  .lrow .lt{ font-size:1.35rem; cursor:pointer } .lrow .lt:hover{ color:var(--oxblood) }
+  .lrow .lp{ color:var(--faded); font-size:.9em; margin-top:.1rem }
+  .lrow.small .lbody{ color:var(--faded); font-style:italic; font-size:.97em }
+  .lrow .thumb{ width:120px; display:block; filter:sepia(.12) saturate(.9) }
+  /* an essay row unfolds in place: clicking its title fills + reveals .full below the preview */
+  .lrow .full{ display:none; margin-top:1rem; font-size:1.05rem }
+  .lrow.open .full{ display:block; animation:foldin .45s ease }
+  /* month heads, an ivy sprig either side (ivy size lives in the trinket panel) */
+  .mo{ text-align:center; font-family:"IM Fell DW Pica SC",serif; color:var(--oxblood);
+    letter-spacing:.3em; font-size:1.3rem; margin:2.6rem 0 .8rem }
+  #archive{ display:none } #archive.awake{ display:block; animation:foldin .45s ease }
+  .wake{ text-align:center; font-style:italic; color:var(--faded); margin:2.4rem 0 0 }
+  @keyframes foldin{ from{ opacity:0; transform:translateY(-8px) } to{ opacity:1; transform:none } }
+  @media (prefers-reduced-motion:reduce){ #archive.awake, .lrow.open .full, .door-view.awake{ animation:none } }
+
+  /* ═══ THE DOORS ═══ quiet italic lines at the foot. margin-top = the gap below the archive. */
+  .doors{ text-align:center; font-style:italic; color:var(--faded); margin:3.2rem 0 0; line-height:1.8 }
+  /* what a door opens (the listening register, the colophon) sleeps like the archive does */
+  .door-view{ display:none; margin-top:2.2rem } .door-view.awake{ display:block; animation:foldin .45s ease }
 
   /* about / welcome block */
   .about{ border-left:2px solid var(--oxblood); padding-left:1.3rem }
@@ -162,17 +186,9 @@
   /* the Yinit face draws heavier/illustrated, so it wants slightly different sizing + offsets. */
   .dropcap.yinit::first-letter{ font-family:"Yinit",serif; font-size:6rem; line-height:1.19; margin:.08rem .1em -2.65rem 0 }
 
-  /* writing (blog posts) */
-  article.post{ border-bottom:1px solid var(--hairline); padding:1.1rem 0 }
-  .post .head{ cursor:pointer }
-  .post .title{ font-family:"IM Fell DW Pica",serif; font-size:1.55rem; color:var(--ink) }
-  .post:hover .title{ color:var(--oxblood) }
-  /* date sits on its own line under the title (rotational-style), not jammed beside it */
-  .post .head .mono-date{ display:block; margin:.2rem 0 0 }
-  .post .preview{ color:var(--faded); margin:.35rem 0 0 }
-  /* A post body is hidden until its article also has the class "open" (toggled by JS on click). */
-  .post .body{ display:none; max-width:var(--measure); margin-top:1rem }
-  .post.open .body{ display:block }
+  /* essays — the same .post markup renders in the stream, unfolded inside an archive
+     row, and in the editor's live preview, so they can never drift apart. */
+  .post .body{ max-width:var(--measure) }
   .post .body img{ max-width:100%; height:auto }
   .post .cover{ width:100%; margin:.6rem 0 1rem; filter:saturate(.92) }
   /* blockquote: an oxblood side-rule + faded text (upright, not italic — that was disliked). */
@@ -192,21 +208,7 @@
   .post .body figure.fig figcaption{ font-style:italic; color:var(--faded); font-size:.82em; text-align:center; margin-top:.4rem }
   .post .body figure.fig-left{ float:left;  width:44%; margin:.3rem 1.5rem .8rem 0 }
   .post .body figure.fig-right{ float:right; width:44%; margin:.3rem 0 .8rem 1.5rem }
-  .post .body::after{ content:""; display:block; clear:both }   /* contain the floats so the card doesn't collapse */
-  .tag{ font-variant:small-caps; letter-spacing:.08em; font-size:.72em; color:var(--paper);
-    background:var(--oxblood); padding:.08rem .5rem; margin-left:.5rem; vertical-align:.15em }
-  .permalink{ cursor:pointer; color:var(--oxblood); margin-left:.4rem; opacity:.5 }
-  .permalink:hover{ opacity:1 }
-
-  /* listening list */
-  .listen{ list-style:none; padding:0; margin:0 }
-  .listen li{ padding:.5rem 0; border-bottom:1px dotted var(--hairline) }
-  .listen .album{ font-family:"IM Fell DW Pica",serif; font-size:1.15rem }
-
-  /* links */
-  .links{ list-style:none; padding:0; margin:0 }
-  .links li{ padding:.4rem 0 }
-  .links .note{ color:var(--faded); font-size:.9em }
+  .post .body::after{ content:""; display:block; clear:both }   /* contain the floats so the layout doesn't collapse */
 
   /* footer */
   footer{ text-align:center; padding:3rem 0 0; color:var(--faded); font-size:.9em }
@@ -237,16 +239,9 @@
   .tp-tag{ font-style:italic; color:var(--faded); margin:.15em 0 .7em }
   .tp-links{ font-variant:small-caps; letter-spacing:.1em }
   .tp-links a{ margin:0 .35em }
+  /* "more of me:" sits on its own quiet line above the link row */
+  .tp-more{ font-style:italic; color:var(--faded); margin:.9em 0 .15em }
   .tp-legal{ font-size:.85em; color:var(--faded); margin-top:.7em }
-  /* the animated wisp rides the engraved pipe-smoke (%s of the full plate) */
-  .tp-smoke{ position:absolute; z-index:1; left:22%; top:33%; width:6%; height:24%; pointer-events:none }
-  .tp-smoke svg{ width:100%; height:100% }
-  /* The one moving thing on the whole site: the smoke, swaying gently.
-     transform-box makes the skew pivot around the smoke's own base, not the page corner. */
-  .smoke{ transform-box:fill-box; transform-origin:50% 100%; animation:drift 9s ease-in-out infinite alternate }
-  @keyframes drift{ from{ transform:skewX(-2deg) } to{ transform:skewX(5deg) } }
-  /* users who ask their OS for less motion get a still curl instead */
-  @media (prefers-reduced-motion:reduce){ .smoke{ animation:none } }
 
   /* back-to-top button. position:fixed = stays pinned to the screen corner while you scroll
      (vs the page). It starts invisible (opacity:0); JS adds .show past 600px of scroll. */
@@ -260,8 +255,7 @@
      top-level site block (masthead, stars, main, footer) and shows ONLY #admin full-screen.
      Leaving #admin (any other hash) reverses it. A hash "route" with zero URL pages. */
   #admin{ display:none }
-  body.admin-mode>header.mast, body.admin-mode>.stars,
-  body.admin-mode>main, body.admin-mode>footer{ display:none }
+  body.admin-mode>header.mast, body.admin-mode>main, body.admin-mode>footer{ display:none }
   /* wider than the 680 reading column so the cheatsheet fits beside the writing area */
   body.admin-mode>#admin{ display:block; max-width:900px; margin:0 auto; padding:2rem 0 5rem }
 
@@ -303,7 +297,6 @@
   /* preview box capped at the real reading width so it matches the published post exactly */
   #preview{ border:1px solid var(--hairline); background:#fbf9f3; padding:1.2rem 1.4rem; margin-top:.4rem; border-radius:2px; max-width:var(--measure) }
   #preview .post{ border:0; padding:0 }
-  #preview .post .body{ display:block }     /* always show the body in the preview */
 
   /* @media = apply these rules ONLY when the screen is 600px wide or less (phones). */
   @media (max-width:600px){
@@ -312,12 +305,16 @@
     .toolbar .undo{ margin-left:0 }   /* on phones, let Undo wrap instead of stranding at the right */
     /* floated figures get cramped on a narrow screen — make them full-width instead. */
     .post .body figure.fig-left, .post .body figure.fig-right{ float:none; width:100%; margin:1rem 0 }
+    /* drop caps a size down so they don't swallow a phone paragraph */
+    .dropcap::first-letter{ font-size:5.2rem; margin:.3rem .08em -2rem 0 }
+    /* archive ledger: the date gutter stacks above the entry instead of beside it */
+    .lrow{ grid-template-columns:1fr; gap:.15rem }
+    .lrow .gut{ text-align:left; padding-top:0 }
     /* the writing area + cheatsheet stack on phones */
     .editor-row{ flex-direction:column }
     .cheat{ position:static; flex-basis:auto; width:100% }
-    /* footer text a step smaller on phones; the wisp is too tiny to matter there */
+    /* footer text a step smaller on phones */
     .tp-title{ font-size:1.15rem } .tp-tag{ font-size:.9rem } .tp-links{ font-size:.95rem } .tp-legal{ font-size:.8rem }
-    .tp-smoke{ display:none }
   }
 </style>
 </head>
@@ -328,30 +325,39 @@
   Your content lives here as plain JavaScript lists ("arrays").
   Each {curly block} is one item. To add a post/song/photo/link,
   copy an existing block and change the values. That's the whole CMS.
-  NOTE: the POSTS_START/END comment lines are markers the in-site editor
+  NOTE: the ENTRIES_START/END comment lines are markers the in-site editor
   searches for when it publishes — don't rename or delete them.
 -->
 <script>
-// === POSTS_START ===
-const POSTS = [
+// ONE dated stream — the day-book. Every item is an entry with a "type":
+//   essay       — the big one: slug, title, date, preview (one-liner for the archive),
+//                 body (Markdown), cover (image url or null), songs [{text,url}] that
+//                 share its date line
+//   song        — one quiet line: date, text (Markdown, so *album* italicises), url
+//   inspiration — one quiet line: date, text, url (optional)
+//   picture     — a small plate: date, src (image url), caption
+// The START/END markers are how the in-site editor finds this block when publishing —
+// don't rename them.
+// === ENTRIES_START ===
+const ENTRIES = [
   {
+    "type": "essay",
     "slug": "hello",
     "title": "Setting type",
     "date": "2026-06-16",
     "preview": "A first mark on the page.",
     "body": ":dropcap: This is where the writing goes. Bodies are now *Markdown* — paragraphs, **emphasis**, [links](https://example.com), images, the usual.\n\nNothing fancy. Just a quiet place to think out loud.",
-    "cover": null
+    "cover": null,
+    "songs": []
+  },
+  {
+    "type": "song",
+    "date": "2026-06-16",
+    "text": "*Selected Ambient Works 85–92*, Aphex Twin — for grey afternoons",
+    "url": "https://www.youtube.com/results?search_query=aphex+twin+selected+ambient+works"
   }
 ];
-// === POSTS_END ===
-
-const LISTENING = [
-  { album:"Selected Ambient Works 85–92", artist:"Aphex Twin", note:"for grey afternoons", url:"https://www.youtube.com/results?search_query=aphex+twin+selected+ambient+works" }
-];
-const LINKS = [
-  { title:"From Jason", url:"https://www.fromjason.xyz/", note:"the inspiration for this place" },
-  { title:"near.blog", url:"https://near.blog/", note:"simple is enough" }
-];
+// === ENTRIES_END ===
 
 // --- CONFIG: fill these in before the in-site editor can publish ------------
 // OWNER/REPO tell the editor which GitHub repo to commit to. TOKEN_CIPHER is your
@@ -367,11 +373,64 @@ const CONFIG = {
 
 <!--
   ============================ STRUCTURE ============================
-  The visible page. Notice the EMPTY containers like <nav id="nav">
-  and <div id="writing-list"> — they're filled in by the JS at the bottom,
-  reading from the DATA arrays above. That's why an `id` matters: JS finds
-  elements by their id.
+  The visible page. Notice the EMPTY containers like <div id="stream"> —
+  they're filled in by the JS at the bottom, reading from ENTRIES above.
+  That's why an `id` matters: JS finds elements by their id.
 -->
+
+<!-- THE TRINKETS — one-of-one ornaments pressed in Claude Design (registry: trinkets.md).
+     Each <symbol> is defined once here, then stamped anywhere with
+     <svg class="orn …"><use href="#o-…"/></svg>. Sizes live in the trinket control panel
+     up in <style>. -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="o-seed" viewBox="0 0 24 24"><!-- end-mark: seed-pod, one seed held inside -->
+    <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12.1 19.2 C8.9 18.6 7.5 15.9 8.4 12.8 C9.1 10.4 10.4 8.4 12.3 6.9 C14.1 8.5 15.3 10.6 15.8 13.1 C16.4 16.1 15 18.8 12.1 19.2 Z"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M12.3 6.9 C11.7 5.5 10.7 4.6 9.4 4.2"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M12.3 6.9 C13.1 5.4 14.2 4.5 15.6 4.3"/>
+    <circle cx="12.1" cy="14.2" r="1.9" fill="currentColor"/>
+  </symbol>
+  <symbol id="o-fleuron" viewBox="0 0 120 24"><!-- divider: four-petal fleuron with rules -->
+    <path fill="currentColor" d="M60 12 C58.2 9.2 58.2 6.2 60 5 C61.8 6.2 61.8 9.2 60 12 Z"/>
+    <path fill="currentColor" d="M60 12 C58.2 14.8 58.2 17.8 60 19 C61.8 17.8 61.8 14.8 60 12 Z"/>
+    <path fill="currentColor" d="M60 12 C62.8 10.2 65.8 10.2 67 12 C65.8 13.8 62.8 13.8 60 12 Z"/>
+    <path fill="currentColor" d="M60 12 C57.2 10.2 54.2 10.2 53 12 C54.2 13.8 57.2 13.8 60 12 Z"/>
+    <circle cx="60" cy="12" r="1.6" fill="currentColor"/>
+    <path fill="currentColor" d="M51 12 C49.5 11.5 48 11.5 48 12 C48 12.5 49.5 12.5 51 12 Z"/>
+    <path fill="currentColor" d="M69 12 C70.5 11.5 72 11.5 72 12 C72 12.5 70.5 12.5 69 12 Z"/>
+    <path fill="currentColor" d="M37 10.5 C35 9.5 33 10.5 33 12 C33 13.5 35 14.5 37 12 C37 11.4 37.1 10.9 37 10.5 Z"/>
+    <path fill="currentColor" d="M83 10.5 C85 9.5 87 10.5 87 12 C87 13.5 85 14.5 83 12 C83 11.4 82.9 10.9 83 10.5 Z"/>
+    <path fill="currentColor" d="M31 11.4 C22 11 11 11.3 4 12 C11 12.7 22 13 31 12.6 Z"/>
+    <path fill="currentColor" d="M89 11.4 C98 11 109 11.3 116 12 C109 12.7 98 13 89 12.6 Z"/>
+  </symbol>
+  <symbol id="o-fern" viewBox="0 0 24 24"><!-- door pointer: unrolling fern crozier -->
+    <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M2.8 13.2 C8 12.8 13 12.6 16.6 11.7 C19.5 11 20.9 9.4 20.5 7.7 C20.2 6.4 18.9 5.9 17.9 6.7 C17.1 7.4 17.4 8.6 18.3 8.8 C19 8.9 19.6 8.5 19.5 7.8"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" d="M8.2 12.9 C7.8 11.8 7 11.1 6 10.9"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" d="M12.6 12.2 C12.3 11.1 11.6 10.4 10.6 10.1"/>
+  </symbol>
+  <symbol id="o-ivy" viewBox="0 0 24 24"><!-- month flourish: ivy tendril (iteration pending) -->
+    <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M20.5 12 C17 12 14 11 12 10"/>
+    <path fill="currentColor" d="M12 10 C10.5 7.5 7.5 6 5.5 7.5 C4.5 6 5.5 3.5 8 3.5 C10 3.5 11.5 5 12 7 C12.5 5.5 13.5 4 15.5 4 C17.5 4 18.5 5.5 17.5 7.5 C16 6.5 14 7.5 13.5 10 Z"/>
+    <path fill="currentColor" d="M12 10 C12 12.5 10 15 8 14.5 C7 13 7.5 11 9 10.5 C10 10.2 11 10.2 12 10 Z"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M12 10 C12 8 11.5 6 11 5"/>
+    <path fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" d="M20.5 12 C21 9.5 20 7.5 19 8 C18 8.5 18.5 10 20.5 12"/>
+  </symbol>
+  <symbol id="o-syrinx" viewBox="0 0 24 24"><!-- song mark: five bound pipes. No text label —
+       the .tip wrapper stamped around it names it (hover tooltip + screen readers). -->
+    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M4 4 L4 20"/>
+    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M8 6.5 L8 20"/>
+    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M12 9 L12 20"/>
+    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M16 11.5 L16 20"/>
+    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M20 14 L20 20"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M2.5 20.5 C8 22.5 16 22.5 21.5 20.5"/>
+  </symbol>
+  <symbol id="o-snail" viewBox="0 0 24 24"><!-- inspiration mark: true spiral, heavy centre.
+       Built from semicircle arcs about two centres 1.4 apart — that alternation is what
+       keeps every coil perfectly concentric with an even 2.8-unit gap between turns. -->
+    <path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+      d="M10.3 12 A2.4 2.4 0 0 1 15.1 12 A3.8 3.8 0 0 1 7.5 12 A5.2 5.2 0 0 1 17.9 12 A6.6 6.6 0 0 1 4.7 12 A8 8 0 0 1 20.7 12"/>
+    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+  </symbol>
+</svg>
 
 <!-- MASTHEAD: the title block. The <svg> is a hand-drawn ornament (also the easter egg). -->
 <header class="mast wrap">
@@ -391,78 +450,49 @@ const CONFIG = {
     <path d="M97 38 C105 31 93 26 101 18 C107 12 102 8 108 3" opacity=".55"/>
   </svg>
   <h1>— the troubled corner —</h1>
-  <p class="tagline">notes, plates &amp; all the other things which irk me</p>
-  <div class="byline smallcaps">by uday</div>
+  <!-- tagline: a PLACEHOLDER — the real line is still being pondered (spec.md open decision) -->
+  <p class="tagline">writing, mostly</p>
   <p class="printmark" id="printmark">✦ set by hand, pressed once, kept forever ✦</p>
 </header>
 
-<div class="stars">★ ❦ ★</div>
-
-<!-- HOME: the long scrolling page. The router (in JS) hides this whole block
-     when you visit the colophon "page", and shows it again otherwise. -->
+<!-- THE DAY-BOOK: one dated stream, then the sleeping archive, then the doors.
+     (Design doc: docs/superpowers/specs/2026-07-04-day-book-design.md) -->
 <main class="wrap">
 
-  <!-- NAV: a slim horizontal menu (rotational-style). renderNav() fills it; clicking a link opens
-       that one fold below. The dated stream itself does the talking — no big index to land on. -->
-  <nav id="nav" class="nav" aria-label="sections"></nav>
+  <!-- THE STREAM — the last 3 essays and the small entries around them, printed in
+       full, newest first. renderStream() fills it from ENTRIES. -->
+  <div id="stream"></div>
 
-  <!-- Each section below is a FOLD: collapsed to just its heading until opened (by clicking the
-       heading, or its Contents link). CSS hides .fold-body until the .fold has class "open"; the
-       JS keeps only one open at a time and scrolls it to the top. -->
+  <!-- THE ARCHIVE — everything older, as a month-headed ledger. Asleep until the wake
+       line is clicked; renderArchive() fills it. Essay rows unfold in place. -->
+  <div class="wake" id="wakeline">the older pages sleep in <a href="#" id="wake">the archive <svg class="orn orn-fern"><use href="#o-fern"/></svg></a></div>
+  <div id="archive" class="ledger"></div>
 
-  <!-- Welcome -->
-  <section id="about" class="fold">
-    <h2 class="sec fold-head">Welcome</h2>
-    <div class="fold-body">
-      <p class="about dropcap">Welcome, whoever you are. This is a small, quiet corner of the web I keep for
-        myself — somewhere to think out loud, set a little type, and figure out my own style without anyone
-        watching. Make yourself comfortable. There's tea, metaphorically.</p>
-      <p class="faded" style="margin-top:1rem">Curious how this place is put together? <a href="#colophon" data-fold="colophon">Read the colophon ☞</a></p>
-    </div>
-  </section>
+  <!-- THE DOORS — the only navigation, quiet lines at the foot. Each opens its view below. -->
+  <div class="doors">
+    every song posted here, in one list: <a href="#" data-door="listening-view">listening <svg class="orn orn-fern"><use href="#o-fern"/></svg></a><br>
+    think I'm wrong about something? <a href="https://www.admonymous.co/uday-gupta" target="_blank" rel="noopener">say so, anonymously <svg class="orn orn-fern"><use href="#o-fern"/></svg></a><br>
+    how this site is made: <a href="#" data-door="colophon">the colophon <svg class="orn orn-fern"><use href="#o-fern"/></svg></a>
+  </div>
 
-  <!-- Writing -->
-  <section id="writing" class="fold">
-    <h2 class="sec fold-head">Writing</h2>
-    <div class="fold-body"><div id="writing-list"></div></div>
-  </section>
+  <!-- the listening register — compiled by renderListening() from every song entry
+       plus the songs on essays' date lines; never maintained by hand -->
+  <div id="listening-view" class="door-view"></div>
 
-  <!-- Listening -->
-  <section id="listening" class="fold">
-    <h2 class="sec fold-head">Listening</h2>
-    <div class="fold-body"><ul class="listen" id="listening-list"></ul></div>
-  </section>
-
-  <!-- Marginalia (links) -->
-  <section id="marginalia" class="fold">
-    <h2 class="sec fold-head">Marginalia</h2>
-    <div class="fold-body"><ul class="links" id="links-list"></ul></div>
-  </section>
-
-  <!-- Admonitions -->
-  <section id="admonitions" class="fold">
-    <h2 class="sec fold-head">Admonitions</h2>
-    <div class="fold-body">
-      <!-- anonymous feedback handled entirely by admonymous.co (their backend); just a link out.
-           target=_blank opens a new tab; rel=noopener is a small safeguard for new-tab links. -->
-      <p>Think I'm wrong about something? Tell me — anonymously, no names, no accounts.
-        <a href="https://www.admonymous.co/uday-gupta" target="_blank" rel="noopener">Leave an anonymous note ☞</a></p>
-    </div>
-  </section>
-
-  <!-- Colophon: now just another fold (no more #/colophon page, no hash router). -->
-  <section id="colophon" class="fold">
-    <h2 class="sec fold-head">Colophon</h2>
-    <div class="fold-body">
-  <p class="about dropcap">A colophon is the note at the back of an old book that tells you how it was made —
+  <!-- the colophon — static prose (absorbs the old Welcome), opened by its door -->
+  <div id="colophon" class="door-view">
+  <p class="about dropcap">Welcome, whoever you are. This is a small, quiet corner of the web I keep for
+    myself — somewhere to think out loud, set a little type, and figure out my own style without anyone
+    watching. Make yourself comfortable. There's tea, metaphorically.</p>
+  <p>A colophon is the note at the back of an old book that tells you how it was made —
     the type, the press, the hands involved. Here is this one's.</p>
 
   <h3>The look</h3>
   <p>This page is dressed like an <em>antique letterpress book</em>: warm ivory paper in place of glaring white,
     ink-black text, a single oxblood accent, and serif type with the ink-spread of old metal. Drop caps open the
-    longer pieces, stars divide the sections, and a pointing hand sends you onward. Nothing glows, nothing blinks,
-    nothing competes for your eye — it is meant to feel <em>found</em>, like a quiet book pulled off a shelf. The
-    aim is calm, neutral, and welcoming: a place to read slowly, not a thing to be optimised.</p>
+    longer pieces, a pressed fleuron divides the days, and a small fern points the way onward. Nothing glows,
+    nothing blinks, nothing competes for your eye — it is meant to feel <em>found</em>, like a quiet book pulled
+    off a shelf. The aim is calm, neutral, and welcoming: a place to read slowly, not a thing to be optimised.</p>
 
   <h3>Typefaces</h3>
   <p>Set throughout in <em>IM Fell DW Pica</em> — a digitisation of a 17th-century letterpress face, ink-spread
@@ -482,17 +512,18 @@ const CONFIG = {
     API and unlocked by a passphrase — no secrets sit in the open, and there is no backend.</p>
 
   <h3>Ornaments</h3>
-  <p>Drop caps, star dividers, and the pointing hand (☞, a <em>manicule</em>) are old printer's conventions.
-    Engravings, where they appear, come from the public domain.</p>
+  <p>The little marks — the seed-pod that ends each essay, the fleuron between the days, the fern after a
+    door, the ivy around a month, the pipes before a song, the spiral before a found thing — are this site's
+    own set of printer's ornaments, pressed one at a time for it and used nowhere else. Drop caps and the
+    pointing hand (☞, a <em>manicule</em>) are older printer's conventions, borrowed with thanks.</p>
 
   <h3>In the spirit of</h3>
   <p>The small, weird, hand-made web — and in particular
     <a href="https://www.fromjason.xyz/">From Jason</a> and <a href="https://near.blog/">near.blog</a>,
     which showed that a personal site can just be calm and yours.</p>
 
-      <p style="margin-top:2rem"><a href="#nav">☞ back to the top</a></p>
-    </div>
-  </section>
+  <p style="margin-top:2rem"><a href="#">☞ back to the top</a></p>
+  </div>
 
 </main>
 
@@ -500,29 +531,23 @@ const CONFIG = {
   <!-- footer text first, ON the paper; the plate below pulls itself up behind these words -->
   <div class="tp-text">
     <div class="tp-title">— the troubled corner —</div>
-    <!-- placeholders: swap these lines/links for whatever this footer should say -->
-    <div class="tp-tag">a quiet corner, kept by hand</div>
+    <!-- the authorship line: ideas get argued over with machines, the words don't -->
+    <div class="tp-tag">all of it, by me</div>
+    <div class="tp-more">more of me:</div>
     <nav class="tp-links" aria-label="footer">
       <a href="mailto:udayg693@gmail.com">email</a> ·
       <a href="https://github.com/udvibin/the-troubled-corner">github</a> ·
-      <a href="#nav">elsewhere</a>
+      <!-- ponytail: drop the real profile URLs in as they come; # until then -->
+      <a href="#">instagram</a> ·
+      <a href="#">spotify</a> ·
+      <a href="#">letterboxd</a>
     </nav>
-    <div class="tp-legal"><span id="year"></span> · set by hand, pressed once</div>
+    <div class="tp-legal">since 2026</div>
   </div>
   <!-- THE TAILPIECE. The full closing engraving (images/tailpiece.jpg), risen behind the
-       end of the page — the "sinking page" blend. The animated wisp (.tp-smoke) rides the
-       man's engraved pipe-smoke — the only moving thing on the site. -->
+       end of the page — the "sinking page" blend. -->
   <div class="tailpiece">
     <img src="images/tailpiece.jpg" alt="engraving: a man in a brimmed hat rests against an oak, smoking, watching a huge cloud and a red half-set sun over an open field">
-    <!-- the living smoke: a faint thread rising from where the engraved smoke ends -->
-    <div class="tp-smoke" aria-hidden="true">
-      <svg viewBox="0 0 60 240" fill="none">
-        <g class="smoke">
-          <path d="M32 240 C44 205 16 175 30 138 C42 106 20 74 32 40 C38 24 30 12 34 0"
-                stroke="#1f1b16" stroke-width="2.4" opacity=".28" stroke-linecap="round"/>
-        </g>
-      </svg>
-    </div>
   </div>
 </footer>
 
@@ -531,26 +556,46 @@ const CONFIG = {
 <section id="admin" class="wrap">
   <div class="topline">
     <h2 class="sec" style="margin:0">the writing desk</h2>
-    <a href="#nav">☞ back to the site</a>
+    <a href="#">☞ back to the site</a>
   </div>
 
-  <!-- metadata. No Date field: every post is dated today automatically. -->
-  <div class="row">
+  <!-- WHAT KIND OF ENTRY. Essay shows the full form; the small kinds hide what they don't
+       need (the applyType() JS flips the groups below). No Date field anywhere: every entry
+       is dated today automatically — that's the day-book's discipline. -->
+  <span class="label">Entry type</span>
+  <select id="f-type">
+    <option value="essay">essay — a full piece</option>
+    <option value="song">song — one line and a link</option>
+    <option value="inspiration">inspiration — one found thing</option>
+    <option value="picture">picture — a small plate</option>
+  </select>
+
+  <div id="g-meta" class="row">
     <div><span class="label">Title</span><input id="f-title" placeholder="a title…"></div>
     <div><span class="label">Slug <span class="faded">(the link)</span></span><input id="f-slug" placeholder="auto from title"></div>
   </div>
-  <span class="label">Preview line <span class="faded">(shown collapsed, optional)</span></span>
-  <input id="f-preview" placeholder="one line shown before the post is expanded">
-  <span class="label">Cover image URL <span class="faded">(optional)</span></span>
-  <input id="f-cover" placeholder="https://…">
-  <!-- …or pick a photo from this device. It gets committed into the repo's images/ folder through
-       the GitHub API (so it needs the passphrase below), and its URL is filled in for you:
-       an empty Cover field claims it, otherwise it lands in the body at the cursor. -->
-  <span class="label">…or upload an image <span class="faded">(commits to <code>images/</code>; needs the passphrase)</span></span>
-  <input id="f-image" type="file" accept="image/*">
+  <div id="g-preview">
+    <span class="label" id="l-preview">Preview line <span class="faded">(one quiet line for the archive ledger)</span></span>
+    <input id="f-preview" placeholder="one line shown in the ledger">
+  </div>
+  <div id="g-cover">
+    <span class="label" id="l-cover">Cover image URL <span class="faded">(optional)</span></span>
+    <input id="f-cover" placeholder="https://…">
+    <!-- …or pick a photo from this device. It gets committed into the repo's images/ folder through
+         the GitHub API (so it needs the passphrase below), and its URL is filled in for you:
+         an empty Cover field claims it, otherwise it lands in the body at the cursor. -->
+    <span class="label">…or upload an image <span class="faded">(commits to <code>images/</code>; needs the passphrase)</span></span>
+    <input id="f-image" type="file" accept="image/*">
+  </div>
+  <div id="g-url">
+    <span class="label">Link URL <span class="faded">(optional — Spotify album links open the app on phones)</span></span>
+    <input id="f-url" placeholder="https://open.spotify.com/album/…">
+  </div>
 
+  <div id="g-body">
   <!-- BODY: write in Markdown. Blank line = new paragraph. Buttons insert the syntax; the special
-       site bits (drop cap, floated figure) insert one-line directives the renderer understands. -->
+       site bits (drop cap, floated figure) insert one-line directives the renderer understands.
+       For a song or inspiration this box is just the one line itself. -->
   <span class="label">Body <span class="faded">— Markdown</span></span>
   <div class="toolbar">
     <span class="grp">
@@ -603,6 +648,7 @@ Blank line between paragraphs."></textarea>
       <div class="cheat-note">Blank line = new paragraph.</div>
     </aside>
   </div>
+  </div><!-- /g-body -->
 
   <span class="label">Live preview — exactly how it will look on the site</span>
   <div id="preview"></div>
@@ -616,10 +662,12 @@ Blank line between paragraphs."></textarea>
   <div class="actions">
     <button class="btn" id="publish">Publish</button>
     <button class="btn ghost" id="clear">New / clear</button>
+    <!-- only shown while an existing entry is loaded below; asks before it acts -->
+    <button class="btn ghost" id="delete" style="display:none">Delete</button>
     <span id="msg"></span>
   </div>
-  <span class="label">Edit an existing post</span>
-  <select id="existing"><option value="">— new post —</option></select>
+  <span class="label">Edit or delete an existing entry</span>
+  <select id="existing"><option value="">— new entry —</option></select>
 </section>
 
 <!-- Lives outside everything because it floats over the page (position:fixed). -->
@@ -637,62 +685,107 @@ Blank line between paragraphs."></textarea>
 const $ = s => document.querySelector(s);
 // el('li','lead','<a>…') = "make a <li>, give it class 'lead', set its inner HTML". Saves repetition.
 const el = (t,c,h)=>{ const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
-// sort comparator: newest date first (used for posts).
+// sort comparator: newest date first (used everywhere entries are listed).
 const byDateDesc = (a,b)=> a.date<b.date?1:a.date>b.date?-1:0;
-// drop the current year into the footer.
-document.getElementById('year').textContent = new Date().getFullYear();
 
-/* ---------- render: turn the DATA arrays into HTML on the page ---------- */
-// Slim horizontal nav: just the sections, separated by a faded dot, plus the discreet ◆ writing desk.
-// The dated stream below carries the page; no big index of every post to scroll past.
-function renderNav(){
-  const secs = [['about','Welcome'],['writing','Writing'],['listening','Listening'],['marginalia','Marginalia'],['colophon','Colophon']];
-  $('#nav').innerHTML =
-    secs.map(([id,name])=>`<a href="#${id}" data-fold="${id}">${name}</a>`).join('<span class="dot">·</span>')
-    + `<a href="#admin" class="adm" title="writing desk">◆</a>`;
+/* ---------- render: turn ENTRIES into the day-book on the page ---------- */
+// Pretty dates. Small entries wear "30 june"; essays and the footer wear "30 june 2026".
+// (Lowercase on purpose — the CSS small-caps does the capitalising.) The +'T00:00' pins
+// the date to local midnight so the day doesn't slip by timezone.
+function fmtDay(iso){ const d=new Date(iso+'T00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{day:'numeric',month:'long'}).toLowerCase(); }
+function fmtFull(iso){ return fmtDay(iso)+' '+iso.slice(0,4); }
+// month heading label: just "june" while the year is current, "june 2025" once it isn't
+function fmtMonth(iso){ const m=fmtDay(iso).replace(/^\d+\s+/,''), y=iso.slice(0,4);
+  return y===String(new Date().getFullYear()) ? m : m+' '+y; }
+
+// The trinket stamps. Drawings live in the <symbol> block after <body>; sizes in the
+// trinket control panel in <style>. The .tip wrapper is the instant hover-label.
+const stamp=(id,cls)=>`<svg class="orn ${cls}"><use href="#${id}"/></svg>`;
+const MARK={ song:`<span class="tip" role="img" aria-label="played">${stamp('o-syrinx','orn-sm')}</span>`,
+             inspiration:`<span class="tip" role="img" aria-label="inspiration">${stamp('o-snail','orn-snail')}</span>` };
+const FIN=stamp('o-seed','fin'), DIVIDER=`<div class="divider">${stamp('o-fleuron','orn-div')}</div>`;
+
+// The end-mark IS the essay's final full stop: strip the trailing period off the last
+// paragraph and press the seed-pod in its place.
+function endMark(html){
+  const i=html.lastIndexOf('</p>');
+  return i<0 ? html+FIN : html.slice(0,i).replace(/[.\s]*$/,'')+FIN+html.slice(i);
 }
-function renderWriting(){
-  const box = $('#writing-list'); box.innerHTML='';
-  for(const p of [...POSTS].sort(byDateDesc)){                 // newest first
-    const a = el('article','post'); a.id = 'post-'+p.slug;     // id lets us link/scroll to it
-    // The .head is always visible; the .body is hidden by CSS until the article gets class "open".
-    a.innerHTML = `
-      <div class="head">
-        <span class="title">${p.title}</span>
-        <span class="permalink" data-perma="${p.slug}" title="copy link">☞</span>
-        ${p.preview?`<p class="preview">${p.preview}</p>`:''}
-        <div class="mono-date">${fmtDate(p.date)}</div>
-      </div>
-      <div class="body">${p.cover?`<img class="cover" src="${p.cover}" alt="">`:''}${mdToHtml(p.body)}</div>`;
-    box.appendChild(a);
+function essayBody(e){ return (e.cover?`<img class="cover" src="${e.cover}" alt="">`:'') + endMark(mdToHtml(e.body)); }
+
+// One entry → its HTML. The editor's live preview calls this SAME function, so the
+// preview and the published page can never disagree.
+function entryHTML(e){
+  if(e.type==='essay'){
+    const songs=(e.songs&&e.songs.length)                    // songs share the essay's date line
+      ? ` <span class="wsong">· ${MARK.song} — ${e.songs.map(s=>`<a target="_blank" rel="noopener" href="${s.url}"><i>${s.text}</i> ↗</a>`).join(' · ')}</span>` : '';
+    return `<article class="post" id="post-${e.slug}"><h2 class="t">${e.title}</h2>`+
+      `<div class="when">${fmtFull(e.date)}${songs}</div><div class="body">${essayBody(e)}</div></article>`;
   }
+  if(e.type==='picture')
+    return `<figure class="plate"><img src="${e.src}" alt="">`+
+      `<figcaption><span class="d">${fmtDay(e.date)}</span>${e.caption?` · ${mdInline(e.caption)}`:''}</figcaption></figure>`;
+  // song / inspiration — one quiet line, fronted by its mark
+  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${mdInline(e.text||'')}`+
+    (e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:'')+`</p>`;
 }
+
+// The stream holds the last 3 essays and every small entry as new as the oldest of
+// them; everything older is the archive. So the front page never grows without bound.
+function splitEntries(){
+  const all=[...ENTRIES].sort(byDateDesc);
+  const essays=all.filter(e=>e.type==='essay');
+  const cut=(essays[2]||essays[essays.length-1]||{}).date||'';   // date of the 3rd-newest essay
+  return { stream: all.filter(e=>!cut||e.date>=cut), archive: all.filter(e=>cut&&e.date<cut) };
+}
+
+function renderStream(){
+  const {stream}=splitEntries(); let out='';
+  // the fleuron parts essay clusters: one before every essay except the very first thing
+  stream.forEach((e,i)=>{ if(e.type==='essay'&&i) out+=DIVIDER; out+=entryHTML(e); });
+  $('#stream').innerHTML=out;
+}
+
+function renderArchive(){
+  const {archive}=splitEntries();
+  if(!archive.length){ $('#wakeline').style.display='none'; $('#archive').innerHTML=''; return; }
+  $('#wakeline').style.display='';
+  let out=DIVIDER, mo='';                       // one divider parts the stream from the ledger
+  for(const e of archive){
+    const m=fmtMonth(e.date);
+    if(m!==mo){ mo=m; out+=`<div class="mo">${stamp('o-ivy','orn-ivy flip')} ${m} ${stamp('o-ivy','orn-ivy')}</div>`; }
+    const gut=`<div class="gut d">${fmtDay(e.date)}</div>`;
+    if(e.type==='essay')                        // title + preview; clicking the title unfolds .full in place
+      out+=`<div class="lrow" data-slug="${e.slug}">${gut}<div class="lbody"><div class="lt">${e.title}</div>`+
+        `${e.preview?`<div class="lp">${e.preview}</div>`:''}<div class="full"></div></div></div>`;
+    else if(e.type==='picture')
+      out+=`<div class="lrow">${gut}<div class="lbody"><img class="thumb" src="${e.src}" alt="">`+
+        `${e.caption?`<div class="lp" style="font-style:italic">${mdInline(e.caption)}</div>`:''}</div></div>`;
+    else
+      out+=`<div class="lrow small">${gut}<div class="lbody">${MARK[e.type]||''} — ${mdInline(e.text||'')}`+
+        `${e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:''}</div></div>`;
+  }
+  $('#archive').innerHTML=out;
+}
+
+// the listening register behind the "listening" door: every song entry + every song on
+// an essay's date line, newest first — compiled, never maintained by hand
 function renderListening(){
-  const ul = $('#listening-list'); ul.innerHTML='';
-  for(const m of LISTENING){
-    // build the line piece by piece; the (cond ? ... : '') bits add the note/link only if present.
-    const li = el('li'); li.innerHTML = `<span class="album">${m.album}</span> — ${m.artist}` +
-      (m.note?` <span class="faded">· ${m.note}</span>`:'') + (m.url?` <a href="${m.url}">↗</a>`:'');
-    ul.appendChild(li);
+  const rows=[];
+  for(const e of [...ENTRIES].sort(byDateDesc)){
+    if(e.type==='song')
+      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — ${mdInline(e.text||'')}`+
+        (e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:''));
+    if(e.type==='essay') for(const s of (e.songs||[]))
+      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
+        `<a target="_blank" rel="noopener" href="${s.url}"><i>${s.text}</i> ↗</a> <span class="faded">· with “${e.title}”</span>`);
   }
+  $('#listening-view').innerHTML = rows.length
+    ? rows.map(r=>`<p class="small-entry">${r}</p>`).join('')
+    : '<p class="small-entry">nothing yet — the needle hasn\'t dropped.</p>';
 }
-function renderLinks(){
-  const ul = $('#links-list'); ul.innerHTML='';
-  for(const l of LINKS){
-    const li = el('li'); li.innerHTML = `<a href="${l.url}">${l.title}</a>` + (l.note?` <span class="note">— ${l.note}</span>`:'');
-    ul.appendChild(li);
-  }
-}
-// text → HTML: blank line = new <p>, single newline = <br>; chunks that already start with a
-// block tag pass through untouched. The editor's live preview uses the identical function,
-// so what you preview is what renders.
-// Pretty date: "2026-06-20" → "Saturday, June 20, 2026". The +'T00:00' pins it to local
-// midnight so the weekday/day don't slip a day due to timezone. Shown in small-caps (CSS).
-function fmtDate(iso){
-  if(!iso) return '';
-  const d = new Date(iso+'T00:00');
-  return isNaN(d) ? iso : d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-}
+
 
 /* ---------- a tiny Markdown → HTML renderer (no library) ----------
    You write plain, readable text; this turns it into the post HTML — and the editor's live
@@ -729,50 +822,47 @@ function mdBlock(b){
 }
 function mdToHtml(md){ return (md||'').replace(/\r/g,'').split(/\n{2,}/).map(mdBlock).filter(Boolean).join('\n'); }
 
-function renderAll(){ renderNav(); renderWriting(); renderListening(); renderLinks(); }
+function renderAll(){ renderStream(); renderArchive(); renderListening(); }
 renderAll(); // do it once on load
 
-/* ---------- accordion: each section is a fold; only one open at a time ----------
-   No URL-hash "pages" any more. setOpenFold(id) opens exactly one fold (no scrolling);
-   openFold(id) also scrolls it to the top; toggleFold(f) flips one heading, closing the rest. */
-function setOpenFold(id){
-  document.querySelectorAll('.fold').forEach(f=> f.classList.toggle('open', f.id===id));
+/* ---------- interactions: wake the archive, open doors, unfold essays ---------- */
+// fill an archive essay row's .full once (lazily — no point rendering essays nobody opens),
+// then reveal it in place
+function unfoldRow(row){
+  const full=row.querySelector('.full');
+  if(full && !full.dataset.filled){
+    const e=ENTRIES.find(x=>x.slug===row.dataset.slug);
+    if(e) full.innerHTML=`<div class="post"><div class="body">${essayBody(e)}</div></div>`;
+    full.dataset.filled='1';
+  }
+  row.classList.add('open');
 }
-function openFold(id){
-  setOpenFold(id);
-  const f = document.getElementById(id);
-  if(f) f.scrollIntoView({behavior:'smooth', block:'start'});
-}
-function toggleFold(f){
-  if(f.classList.contains('open')){ f.classList.remove('open'); }              // open → close it
-  else{ setOpenFold(f.id); f.scrollIntoView({behavior:'smooth', block:'start'}); } // else open it alone + scroll
-}
-setOpenFold('about');   // open Welcome by default so the page isn't just a list of headings
+function wakeArchive(){ $('#archive').classList.add('awake'); $('#wakeline').style.display='none'; }
+$('#wake').addEventListener('click', e=>{ e.preventDefault(); wakeArchive();
+  $('#archive').scrollIntoView({behavior:'smooth'}); });
 
-/* ---------- interactions: open posts, copy links, back-to-top, easter egg ---------- */
-function openPost(slug){
-  const a = document.getElementById('post-'+slug);
-  if(!a) return;
-  const fold = a.closest('.fold'); if(fold) setOpenFold(fold.id);   // make sure the post's fold is open
-  a.classList.add('open'); a.scrollIntoView({behavior:'smooth',block:'start'});
-}
-// One click listener on the whole document ("event delegation") handles every post,
-// even ones added later — cheaper than attaching a listener to each card.
+// One click listener on the whole document ("event delegation") handles every door and
+// ledger row, even after a re-render — cheaper than a listener per element.
 document.addEventListener('click', e=>{
-  const foldHead = e.target.closest('.fold-head');                    // clicked a fold heading?
-  if(foldHead){ toggleFold(foldHead.closest('.fold')); return; }      // open it (closing the rest), or close it
-  const foldLink = e.target.closest('[data-fold]');                   // clicked a Contents link?
-  if(foldLink){ e.preventDefault(); openFold(foldLink.dataset.fold); return; } // open that fold + scroll to it
-  const head = e.target.closest('.post .head');                       // clicked a post header?
-  if(head && !e.target.closest('.permalink')){ head.parentElement.classList.toggle('open'); } // toggle open/closed
-  const perma = e.target.closest('[data-perma]');                     // clicked the ☞ permalink?
-  if(perma){ const slug=perma.dataset.perma;
-    navigator.clipboard?.writeText(location.origin+location.pathname+'#post-'+slug); // copy the link
-    perma.textContent='✓'; setTimeout(()=>perma.textContent='☞',900); }              // brief ✓ feedback
-  const open = e.target.closest('[data-open]');                       // clicked a Contents post link?
-  if(open){ e.preventDefault(); openPost(open.dataset.open); }        // expand + scroll to it
+  const door=e.target.closest('[data-door]');                        // a door at the foot?
+  if(door){ e.preventDefault();
+    const v=document.getElementById(door.dataset.door);
+    v.classList.toggle('awake');                                     // click again to close it
+    if(v.classList.contains('awake')) v.scrollIntoView({behavior:'smooth', block:'nearest'});
+    return; }
+  const lt=e.target.closest('.lrow .lt');                            // an archive essay title?
+  if(lt){ const row=lt.closest('.lrow');
+    if(row.classList.contains('open')) row.classList.remove('open'); else unfoldRow(row); }
 });
-// If someone arrives with a #post-… link, open that post on load.
+
+// Arriving with a #post-… link: the essay is either in the stream (its article has the id)
+// or asleep in the archive — wake it and unfold the right row.
+function openPost(slug){
+  const a=document.getElementById('post-'+slug);
+  if(a){ a.scrollIntoView({behavior:'smooth', block:'start'}); return; }
+  const row=document.querySelector(`.lrow[data-slug="${CSS.escape(slug)}"]`);
+  if(row){ wakeArchive(); unfoldRow(row); row.scrollIntoView({behavior:'smooth', block:'start'}); }
+}
 if(location.hash.startsWith('#post-')) openPost(location.hash.slice(6));
 
 // back-to-top button: scroll to the contents; only show it after scrolling down a bit.
@@ -791,27 +881,44 @@ addEventListener('hashchange', route); route();
 const body = $('#f-body');
 const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
 
-// Gather the form into a post object. Date is ALWAYS today — there is no date field.
+// Gather the form into an entry. A NEW entry is always dated today — there is no date
+// field; that's the day-book's discipline (a gap in the dates is a visible fact, not a
+// hidden one). EDITING an entry keeps its original date: fixing a typo isn't a new day.
+let editing=null;                           // the ENTRIES object loaded for editing (null = new)
 function gather(){
-  return {
+  const type=$('#f-type').value;
+  const date=editing ? editing.date : new Date().toISOString().slice(0,10);
+  if(type==='essay') return { type,
     slug: $('#f-slug').value.trim() || slugify($('#f-title').value),
-    title: $('#f-title').value.trim(),
-    date: new Date().toISOString().slice(0,10),
+    title: $('#f-title').value.trim(), date,
     preview: $('#f-preview').value.trim(),
     body: body.value,
-    cover: $('#f-cover').value.trim() || null
-  };
+    cover: $('#f-cover').value.trim() || null,
+    songs: (editing && editing.songs) || [] };
+  if(type==='picture') return { type, date,
+    src: $('#f-cover').value.trim(), caption: $('#f-preview').value.trim() };
+  return { type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
 }
-// Build the same post card the site renders (so the preview is the real thing), shown expanded.
-function postHTML(p){
-  return `<article class="post open">
-    <div class="head"><span class="title">${p.title||'Untitled'}</span>
-      ${p.preview?`<p class="preview">${p.preview}</p>`:''}
-      <div class="mono-date">${fmtDate(p.date)}</div></div>
-    <div class="body">${p.cover?`<img class="cover" src="${p.cover}" alt="">`:''}${mdToHtml(p.body)}</div>
-  </article>`;
+// Two entries are "the same one": essays whenever slugs match; small entries when
+// type + date + text/src match (they have no slug — this triple is their identity).
+const sameEntry=(a,b)=> !!(a&&b) && ( (a.slug&&b.slug) ? a.slug===b.slug
+  : a.type===b.type && a.date===b.date && (a.text||a.src||'')===(b.text||b.src||'') );
+// the preview renders through entryHTML — the exact function the site uses
+function syncPreview(){ const p=gather();
+  $('#preview').innerHTML = entryHTML(p.type==='essay' ? {...p, title:p.title||'Untitled'} : p); }
+
+// which form groups each entry type shows (ids of the wrapper <div>s in the HTML above)
+const GROUPS={ 'g-meta':['essay'], 'g-preview':['essay','picture'], 'g-cover':['essay','picture'],
+               'g-url':['song','inspiration'], 'g-body':['essay','song','inspiration'] };
+function applyType(){
+  const t=$('#f-type').value;
+  for(const id in GROUPS) document.getElementById(id).style.display = GROUPS[id].includes(t)?'':'none';
+  // two labels do double duty for pictures
+  $('#l-cover').firstChild.textContent   = t==='picture' ? 'Image URL ' : 'Cover image URL ';
+  $('#l-preview').firstChild.textContent = t==='picture' ? 'Caption '   : 'Preview line ';
+  syncPreview();
 }
-function syncPreview(){ $('#preview').innerHTML = postHTML(gather()); }
+$('#f-type').addEventListener('change', applyType);
 
 /* toolbar + undo. Editing textarea.value directly wipes the browser's native undo, so we keep
    our own snapshot history — which also powers a tappable Undo button for phones (no Ctrl+Z there). */
@@ -889,26 +996,41 @@ body.addEventListener('keydown', e=>{
 // auto-slug from title until the slug is edited by hand.
 $('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $('#f-slug').value=slugify(e.target.value); syncPreview(); });
 $('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
-['#f-preview','#f-cover'].forEach(s=> $(s).addEventListener('input', syncPreview));
+['#f-preview','#f-cover','#f-url'].forEach(s=> $(s).addEventListener('input', syncPreview));
 
-// Edit-existing dropdown: load a post's fields back into the form.
+// Edit-existing dropdown: EVERY entry, newest first — essays by title, small entries
+// by "type · date · start of the line". Selecting one loads it and shows Delete.
+let existingList=[];                    // the sorted entries the dropdown indexes into
 function populateExisting(){
-  const sel=$('#existing'); sel.innerHTML='<option value="">— new post —</option>';
-  for(const p of POSTS){ const o=el('option'); o.value=p.slug; o.textContent=p.title||p.slug; sel.appendChild(o); }
+  const sel=$('#existing'); sel.innerHTML='<option value="">— new entry —</option>';
+  existingList=[...ENTRIES].sort(byDateDesc);
+  existingList.forEach((p,i)=>{
+    const o=el('option'); o.value=String(i);
+    o.textContent = p.type==='essay' ? `essay · ${p.title||p.slug}`
+      : `${p.type} · ${fmtDay(p.date)} · ${(p.text||p.caption||p.src||'').replace(/[*_`]/g,'').slice(0,42)}`;
+    sel.appendChild(o);
+  });
 }
 $('#existing').addEventListener('change', e=>{
-  const p = POSTS.find(x=>x.slug===e.target.value);
+  const p = existingList[+e.target.value];
   if(!p){ $('#clear').click(); return; }
-  $('#f-title').value=p.title||''; $('#f-slug').value=p.slug; $('#f-slug').dataset.touched='1';
-  $('#f-preview').value=p.preview||''; $('#f-cover').value=p.cover||'';
-  body.value=p.body||''; history=[body.value]; hi=0; syncPreview();
+  editing=p;
+  $('#f-type').value=p.type;
+  $('#f-title').value=p.title||''; $('#f-slug').value=p.slug||''; $('#f-slug').dataset.touched = p.slug?'1':'';
+  $('#f-preview').value = p.type==='picture' ? (p.caption||'') : (p.preview||'');
+  $('#f-cover').value   = p.type==='picture' ? (p.src||'')     : (p.cover||'');
+  $('#f-url').value=p.url||'';
+  body.value = p.type==='essay' ? (p.body||'') : (p.text||'');
+  history=[body.value]; hi=0;
+  $('#delete').style.display='';
+  applyType();                          // flips the field groups + redraws the preview
 });
 
 /* ---------- PUBLISH: commit the post straight into index.html on GitHub ----------
    The whole "backend" is the GitHub contents API. The flow:
      1. passphrase → decrypt CONFIG.TOKEN_CIPHER (PBKDF2 → AES-GCM) → token held in memory.
      2. GET this very file from the repo (its content + a `sha`, GitHub's version stamp).
-     3. Find the POSTS block between the // === POSTS_START/END === markers, parse the LIVE
+     3. Find the ENTRIES block between the // === ENTRIES_START/END === markers, parse the LIVE
         array (not this page's copy, which may be stale if you posted from another device),
         insert/replace this post, newest first.
      4. PUT the reassembled file back, quoting the sha ("I edited the version I read").
@@ -960,42 +1082,73 @@ async function gh(path, opts={}){
   return r.json();
 }
 
-// Fetch the live index.html, splice this post into its POSTS block, commit it back.
-async function commitPost(p, retried){
+// Fetch the live index.html, apply ONE change to its ENTRIES block, commit it back.
+// `add` = an entry to insert (or null); `remove` = an entry to take out (or null).
+//   publish new  → add only          publish edit → add + remove the original
+//   delete       → remove only
+// Essays are matched by slug, small entries by type+date+text (see sameEntry).
+async function commitChange(add, remove, retried){
   const file = await gh(`index.html?ref=${CONFIG.BRANCH}`);
   const src  = b64ToUtf8(file.content);
-  const A='// === POSTS_START ===', B='// === POSTS_END ===';
+  const A='// === ENTRIES_START ===', B='// === ENTRIES_END ===';
   const a=src.indexOf(A), b=src.indexOf(B);
-  if(a<0 || b<a) throw new Error('POSTS markers missing in the live file.');
-  const block = src.slice(a+A.length, b);
-  const posts = JSON.parse(block.slice(block.indexOf('['), block.lastIndexOf(']')+1));  // just the [...] between the markers
-  const next  = [p, ...posts.filter(x=>x.slug!==p.slug)].sort(byDateDesc);              // insert/replace by slug, newest first
-  const out   = src.slice(0, a+A.length) + '\nconst POSTS = ' + JSON.stringify(next, null, 2) + ';\n' + src.slice(b);
+  if(a<0 || b<a) throw new Error('ENTRIES markers missing in the live file.');
+  const block   = src.slice(a+A.length, b);
+  const entries = JSON.parse(block.slice(block.indexOf('['), block.lastIndexOf(']')+1)); // just the [...] between the markers
+  let next = entries.filter(x=> !sameEntry(x,remove) && !sameEntry(x,add));
+  if(add) next=[add, ...next];
+  next.sort(byDateDesc);
+  const what = w => (w.title || w.text || w.caption || w.src || 'entry').slice(0,60);
+  const message = add ? `${remove?'edit':'new'} ${add.type}: ${what(add)}` : `delete ${remove.type}: ${what(remove)}`;
+  const out = src.slice(0, a+A.length) + '\nconst ENTRIES = ' + JSON.stringify(next, null, 2) + ';\n' + src.slice(b);
   try{
     await gh('index.html', { method:'PUT',
-      body: JSON.stringify({ message:`new post: ${p.title}`, content:utf8ToB64(out), sha:file.sha, branch:CONFIG.BRANCH }) });
+      body: JSON.stringify({ message, content:utf8ToB64(out), sha:file.sha, branch:CONFIG.BRANCH }) });
   }catch(e){
-    if(e.status===409 && !retried) return commitPost(p, true);  // sha moved under us → one re-fetch + retry
+    if(e.status===409 && !retried) return commitChange(add, remove, true); // sha moved under us → one re-fetch + retry
     throw e;
   }
   return next;
 }
 
+// shared tail for publish/delete: swap in the new list, re-render, reset the desk
+function showNext(next, slug){
+  ENTRIES.length=0; ENTRIES.push(...next); renderAll(); populateExisting();
+  editing=null; $('#existing').value=''; $('#delete').style.display='none';
+  setTimeout(()=>{ location.hash=''; if(slug) openPost(slug); }, 900);
+}
+
 $('#publish').addEventListener('click', async ()=>{
-  const p = gather();
-  if(!p.title || !p.slug) return msg('Title and slug are required.', true);
-  // shared tail: swap in the new list, re-render, then leave the desk and open the post on the site.
-  const show = next => { POSTS.length=0; POSTS.push(...next); renderNav(); renderWriting(); populateExisting();
-    setTimeout(()=>{ location.hash=''; openFold('writing'); openPost(p.slug); }, 900); };
-  if(!CONFIG.TOKEN_CIPHER){                                     // no encrypted token committed yet → old local-only behaviour
-    show([p, ...POSTS.filter(x=>x.slug!==p.slug)].sort(byDateDesc));
+  const p = gather(), original = editing;
+  if(p.type==='essay'   && (!p.title || !p.slug)) return msg('Title and slug are required.', true);
+  if(p.type==='picture' && !p.src)                return msg('A picture needs its image URL.', true);
+  if((p.type==='song'||p.type==='inspiration') && !p.text) return msg('Write the line first.', true);
+  if(!CONFIG.TOKEN_CIPHER){                                     // no encrypted token committed yet → local-only behaviour
+    showNext([p, ...ENTRIES.filter(x=>!sameEntry(x,original) && !sameEntry(x,p))].sort(byDateDesc), p.slug);
     return msg('Published locally only — no TOKEN_CIPHER in CONFIG yet (gone on refresh).');
   }
   try{
     msg('Unlocking…');               await getToken();
-    msg('Committing to GitHub…');    const next = await commitPost(p);
+    msg('Committing to GitHub…');    const next = await commitChange(p, original);
     msg('Committed ✓ — live on the site in about a minute.');
-    show(next);
+    showNext(next, p.slug);
+  }catch(err){ msg(err.message, true); }
+});
+
+// Delete the loaded entry — asks first; commits the removal through the same flow.
+$('#delete').addEventListener('click', async ()=>{
+  if(!editing) return;
+  if(!confirm('Delete this entry for good?')) return;
+  const doomed = editing;
+  if(!CONFIG.TOKEN_CIPHER){
+    showNext(ENTRIES.filter(x=>!sameEntry(x,doomed)));
+    return msg('Deleted locally only — no TOKEN_CIPHER in CONFIG yet (back on refresh).');
+  }
+  try{
+    msg('Unlocking…');               await getToken();
+    msg('Committing the removal…');  const next = await commitChange(null, doomed);
+    msg('Deleted ✓ — gone from the site in about a minute.');
+    showNext(next);
   }catch(err){ msg(err.message, true); }
 });
 
@@ -1022,13 +1175,14 @@ $('#f-image').addEventListener('change', async e=>{
   }catch(err){ msg(err.message, true); }
 });
 $('#clear').addEventListener('click', ()=>{
-  ['f-title','f-slug','f-preview','f-cover'].forEach(f=>$('#'+f).value='');
+  ['f-title','f-slug','f-preview','f-cover','f-url'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
+  editing=null; $('#existing').value=''; $('#delete').style.display='none';
   body.value=''; history=['']; hi=0; syncPreview(); msg('');
 });
 
 populateExisting();
-syncPreview();
+applyType();          // sets the form to the current type AND draws the first preview
 </script>
 </body>
 </html>

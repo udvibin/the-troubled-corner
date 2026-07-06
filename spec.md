@@ -151,14 +151,51 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
 - **Editor niceties** — auto date (today, no field); date renders pretty ("Saturday, June 20, 2026") **below the title/preview line**; undo stack + ↶ button + Ctrl+Z; mobile-friendly (touch targets, stacks); blockquote = oxblood side-rule + upright faded text; inline **floated figures** with captions (`fig◧`/`fig◨` → `:fig-left/right:`).
 - Aesthetic + accordion-fold groundwork from earlier sessions.
 
+### Done since (July 2–4, 2026) ✅
+- **Site is LIVE**: https://udvibin.github.io/the-troubled-corner/ (Pages enabled; rode out a
+  GitHub Pages incident on Jul 2).
+- **Footer identity**: AI-generated engraved tailpiece (`images/tailpiece.jpg`, 0.56MB) with
+  the "sinking page" blend (negative margin + mask + multiply); hat printer's-device SVG in
+  the masthead; smoke-wisp animation removed (uncommitted in working tree).
+- **Plates section removed entirely** (array, render, lightbox, nav entry).
+- **UX fixes**: fold-open fade animation; `overflow-x:hidden` scrollbar fix.
+- **STRUCTURE DECIDED — the Day-book** (brainstormed to convergence; full design doc:
+  `docs/superpowers/specs/2026-07-04-day-book-design.md`; visual reference: `mock.html`).
+  One dated ENTRIES stream (essay/song/picture/inspiration), last 3 essays on the page,
+  month-grouped ledger archive waking below (unfold-in-place), doors at the foot only,
+  no nav bar, no full/brief toggle, no marginalia register. Date under title; a blog's
+  songs share the date line. Spotify album links, `target="_blank"` (answers old to-do 3 —
+  links, not embeds).
+- **Trinkets pressed** (Claude Design + design system "the troubled corner" synced from
+  this repo): 6 ornaments won and wired into `mock.html` as `<symbol>`s — seed-pod
+  end-mark, four-petal-fleuron divider, fern-crozier door pointer, ivy month flourish,
+  syrinx song mark, snail inspiration mark. See `trinkets.md` for the registry + prompts.
+
 ### To do (next session)
-1. **Go live (manual steps, ~10 min — the code is done, see Done ✅):**
-   - Create a **fine-grained GitHub PAT**: only repo `udvibin/the-troubled-corner`, permission **Contents: Read and write**, nothing else.
-   - Open `encrypt-token.html` locally, encrypt the PAT with a strong passphrase, paste the JSON into `CONFIG.TOKEN_CIPHER` in `index.html`. Then delete `encrypt-token.html`.
-   - Enable **GitHub Pages** on the repo (Settings → Pages → deploy from `master`), commit + push.
-2. **Day-book content model** — still pending: merge `POSTS` + `PLATES` → one chronological `ENTRIES` stream (editor still writes to `POSTS`; `PLATES` is separate). Decide the name (Day-book / Commonplace / keep Writing).
-3. **Song / Spotify embeds** — designed (click-to-load facade, host-allowlist) but not built; add a `media`/`song` field + render.
-4. **dropcat** — fun side-project, parked in `dropcat.md` (a full A–Z cat drop-cap set).
+1. ~~BUILD THE DAY-BOOK into `index.html`~~ ✅ **DONE 2026-07-05** — ENTRIES array
+   (essay/song/picture/inspiration) between `ENTRIES_START/END` markers, renderStream/
+   renderArchive/renderListening/renderFooter, editor type-picker, publishing parses
+   ENTRIES (`commitChange`), all six trinkets wired with instant `.tip` tooltips.
+   Footer text decided: "all of it, by me" / "more of me:" above the link row /
+   "since 2026". The desk can now **edit or delete ANY entry** (dropdown lists all;
+   essays matched by slug, small entries by type+date+text; edits keep the original
+   date; Delete asks first). check.js rebuilt (scratchpad), all checks green; verified
+   with headless-Edge screenshots. **Remaining**: Uday eyeballs the live page, then
+   delete `mock.html` + `Selected Ornaments - Final.html`.
+2. **Fill the footer social URLs** — instagram / spotify / letterboxd are `href="#"`
+   placeholders in the footer `tp-links` block.
+3. **Go live for publishing (manual, ~10 min):** fine-grained PAT (this repo only,
+   Contents R/W) → `encrypt-token.html` → paste JSON into `CONFIG.TOKEN_CIPHER` →
+   delete encrypt-token.html → push.
+4. **Commit housekeeping**: day-book rebuild is uncommitted; trinkets.md, docs/ are
+   untracked; `images/tailpiece.png` (3.8MB original) should be deleted.
+5. **Trinket iterations** (Claude Design, new chat per ornament): improve ivy tendril
+   (snail done in-code 2026-07-04 as a concentric spiral); unpressed: plate frame,
+   smoke curl. **Masthead device**: Uday isn't sold on the hat — press candidates in
+   Claude Design like the other trinkets, swap in a winner.
+6. **Tagline** — placeholder "writing, mostly"; needs a brainstorm (Uday said all
+   current candidates are bad).
+7. **dropcat** — parked in `dropcat.md`.
 
 **Reference (liked):** [rotational.co.uk](https://rotational.co.uk/) — calm single-column serif blog; slim horizontal nav; newest-first stream; hairline separators; writing carries it. Other touchstones: fromjason.xyz, near.blog, sive.rs, stephango.com, wiki.xxiivv.com.
 
@@ -168,7 +205,8 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
 - **Heading style:** ✅ resolved — Fell roman (small-caps cut retired for headings).
 - **Contents / legend:** ✅ resolved — slim horizontal nav.
 - **Editor model:** ✅ resolved — Markdown.
-- **Day-book name:** still open — `Day-book` (recommended) · `Commonplace` · keep `Writing`.
+- **Day-book name:** ✅ resolved — the day-book (the page itself wears no section name; see the 2026-07-04 design doc).
+- **Tagline:** still open — "writing, mostly" is a placeholder; Uday to decide.
 
 ## Conventions
 Single file, zero deps, comment heavily for learning (lean code, rich comments). Post bodies are **Markdown**. See `CLAUDE.md`.
