@@ -348,8 +348,8 @@
 <script>
 // ONE dated stream — the day-book. Every item is an entry with a "type":
 //   essay       — the big one: slug, title, date, preview (one-liner for the archive),
-//                 body (Markdown), cover (image url or null), songs [{text,url}] that
-//                 share its date line
+//                 body (Markdown), cover (image url or null), songs [{artist,song,url}]
+//                 that share its date line (the desk's Link/Song fields add one)
 //   song        — one quiet line: date, text (your words, Markdown), url, song
 //                 (track/album name — the desk auto-fills it from a Spotify link and
 //                 it renders as the hyperlink), artist (typed by hand)
@@ -759,7 +759,11 @@ function smallLine(e){
 function entryHTML(e){
   if(e.type==='essay'){
     const songs=(e.songs&&e.songs.length)                    // songs share the essay's date line
-      ? ` <span class="wsong">· ${MARK.song} — ${e.songs.map(s=>`<a target="_blank" rel="noopener" href="${s.url}"><i>${s.text}</i> ↗</a>`).join(' · ')}</span>` : '';
+      ? ` <span class="wsong">· ${MARK.song} — ${e.songs.map(s=>{
+          const name=`<i>${s.song||s.text||''}</i>`;         // s.text = the old field name
+          const link=s.url?`<a target="_blank" rel="noopener" href="${s.url}">${name}</a>`:name;
+          return `${s.artist?s.artist+' – ':''}${link}`;
+        }).join(' · ')}</span>` : '';
     return `<article class="post" id="post-${e.slug}"><h2 class="t">${e.title}</h2>`+
       `<div class="when">${fmtFull(e.date)}${songs}</div><div class="body">${essayBody(e)}</div></article>`;
   }
@@ -816,8 +820,8 @@ function renderListening(){
     if(e.type==='song')
       rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — ${smallLine(e)}`);
     if(e.type==='essay') for(const s of (e.songs||[]))
-      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
-        `<a target="_blank" rel="noopener" href="${s.url}"><i>${s.text}</i> ↗</a> <span class="faded">· with “${e.title}”</span>`);
+      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — ${smallLine({...s, song:s.song||s.text})}`+
+        ` <span class="faded">· with “${e.title}”</span>`);
   }
   $('#listening-view').innerHTML = rows.length
     ? rows.map(r=>`<p class="small-entry">${r}</p>`).join('')
@@ -933,13 +937,19 @@ let editing=null;                           // the ENTRIES object loaded for edi
 function gather(){
   const type=$('#f-type').value;
   const date=editing ? editing.date : new Date().toISOString().slice(0,10);
-  if(type==='essay') return { type,
-    slug: $('#f-slug').value.trim() || slugify($('#f-title').value),
-    title: $('#f-title').value.trim(), date,
-    preview: $('#f-preview').value.trim(),
-    body: body.value,
-    cover: $('#f-cover').value.trim() || null,
-    songs: (editing && editing.songs) || [] };
+  if(type==='essay'){
+    const s={ artist:$('#f-artist').value.trim()||null, song:$('#f-song').value.trim()||null,
+              url:$('#f-url').value.trim()||null };
+    return { type,
+      slug: $('#f-slug').value.trim() || slugify($('#f-title').value),
+      title: $('#f-title').value.trim(), date,
+      preview: $('#f-preview').value.trim(),
+      body: body.value,
+      cover: $('#f-cover').value.trim() || null,
+      // the date line keeps the songs the essay already had; a filled Link/Song field
+      // ADDS one. ponytail: removing a song = edit the songs array by hand, rare enough.
+      songs: [ ...((editing && editing.songs) || []), ...((s.url||s.song) ? [s] : []) ] };
+  }
   if(type==='picture') return { type, date,
     src: $('#f-cover').value.trim(), caption: $('#f-preview').value.trim() };
   const small={ type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
@@ -956,7 +966,7 @@ function syncPreview(){ const p=gather();
 
 // which form groups each entry type shows (ids of the wrapper <div>s in the HTML above)
 const GROUPS={ 'g-meta':['essay'], 'g-preview':['essay','picture'], 'g-cover':['essay','picture'],
-               'g-url':['song','inspiration'], 'g-song':['song'], 'g-body':['essay','song','inspiration'] };
+               'g-url':['essay','song','inspiration'], 'g-song':['essay','song'], 'g-body':['essay','song','inspiration'] };
 function applyType(){
   const t=$('#f-type').value;
   for(const id in GROUPS) document.getElementById(id).style.display = GROUPS[id].includes(t)?'':'none';
