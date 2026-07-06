@@ -350,8 +350,9 @@
 //   essay       — the big one: slug, title, date, preview (one-liner for the archive),
 //                 body (Markdown), cover (image url or null), songs [{text,url}] that
 //                 share its date line
-//   song        — one quiet line: date, text (Markdown, so *album* italicises), url
-//                 (the text itself becomes the link)
+//   song        — one quiet line: date, text (your words, Markdown), url, song
+//                 (track/album name — the desk auto-fills it from a Spotify link and
+//                 it renders as the hyperlink), artist (typed by hand)
 //   inspiration — one quiet line: date, text, url (optional)
 //   picture     — a small plate: date, src (image url), caption
 // The START/END markers are how the in-site editor finds this block when publishing —
@@ -616,6 +617,13 @@ const CONFIG = {
     <span class="label">Link URL <span class="faded">(optional — Spotify album links open the app on phones)</span></span>
     <input id="f-url" placeholder="https://open.spotify.com/album/…">
   </div>
+  <!-- what the link points at. Song name fills itself from a Spotify link (fetchMeta);
+       Spotify won't tell browsers the artist, so that one's yours to type -->
+  <div id="g-song" class="row">
+    <div><span class="label">Song / album name <span class="faded">(auto-fills from the link)</span></span>
+      <input id="f-song" placeholder="fills itself when you paste a link…"></div>
+    <div><span class="label">Artist</span><input id="f-artist" placeholder="who it's by"></div>
+  </div>
 
   <div id="g-body">
   <!-- BODY: write in Markdown. Blank line = new paragraph. Buttons insert the syntax; the special
@@ -737,6 +745,15 @@ function endMark(html){
 }
 function essayBody(e){ return (e.cover?`<img class="cover" src="${e.cover}" alt="">`:'') + endMark(mdToHtml(e.body)); }
 
+// A small entry's line: your words first, then "Artist – Song/Album" pulled from the
+// link, with the NAME as the hyperlink. No name saved? The words themselves link out.
+function smallLine(e){
+  const line = mdInline(e.text||'');
+  const name = e.song ? (e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${e.song}</a>` : e.song) : '';
+  if(name) return `${line}${line?' · ':''}${e.artist ? e.artist+' – ' : ''}${name}`;
+  return e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${line}</a>` : line;
+}
+
 // One entry → its HTML. The editor's live preview calls this SAME function, so the
 // preview and the published page can never disagree.
 function entryHTML(e){
@@ -749,11 +766,8 @@ function entryHTML(e){
   if(e.type==='picture')
     return `<figure class="plate"><img src="${e.src}" alt="">`+
       `<figcaption><span class="d">${fmtDay(e.date)}</span>${e.caption?` · ${mdInline(e.caption)}`:''}</figcaption></figure>`;
-  // song / inspiration — one quiet line, fronted by its mark. If there's a link,
-  // the WHOLE line of text is the link (not a little arrow after it).
-  const line = mdInline(e.text||'');
-  const txt = e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${line}</a>` : line;
-  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${txt}</p>`;
+  // song / inspiration — one quiet line, fronted by its mark
+  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${smallLine(e)}</p>`;
 }
 
 // The stream holds the last 3 essays and every small entry as new as the oldest of
@@ -799,11 +813,8 @@ function renderArchive(){
 function renderListening(){
   const rows=[];
   for(const e of [...ENTRIES].sort(byDateDesc)){
-    if(e.type==='song'){
-      const line = mdInline(e.text||'');
-      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
-        (e.url?`<a target="_blank" rel="noopener" href="${e.url}">${line}</a>`:line));
-    }
+    if(e.type==='song')
+      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — ${smallLine(e)}`);
     if(e.type==='essay') for(const s of (e.songs||[]))
       rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
         `<a target="_blank" rel="noopener" href="${s.url}"><i>${s.text}</i> ↗</a> <span class="faded">· with “${e.title}”</span>`);
@@ -931,7 +942,9 @@ function gather(){
     songs: (editing && editing.songs) || [] };
   if(type==='picture') return { type, date,
     src: $('#f-cover').value.trim(), caption: $('#f-preview').value.trim() };
-  return { type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
+  const small={ type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
+  if(type==='song'){ small.song=$('#f-song').value.trim()||null; small.artist=$('#f-artist').value.trim()||null; }
+  return small;
 }
 // Two entries are "the same one": essays whenever slugs match; small entries when
 // type + date + text/src match (they have no slug — this triple is their identity).
@@ -943,7 +956,7 @@ function syncPreview(){ const p=gather();
 
 // which form groups each entry type shows (ids of the wrapper <div>s in the HTML above)
 const GROUPS={ 'g-meta':['essay'], 'g-preview':['essay','picture'], 'g-cover':['essay','picture'],
-               'g-url':['song','inspiration'], 'g-body':['essay','song','inspiration'] };
+               'g-url':['song','inspiration'], 'g-song':['song'], 'g-body':['essay','song','inspiration'] };
 function applyType(){
   const t=$('#f-type').value;
   for(const id in GROUPS) document.getElementById(id).style.display = GROUPS[id].includes(t)?'':'none';
@@ -1030,7 +1043,24 @@ body.addEventListener('keydown', e=>{
 // auto-slug from title until the slug is edited by hand.
 $('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $('#f-slug').value=slugify(e.target.value); syncPreview(); });
 $('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
-['#f-preview','#f-cover','#f-url'].forEach(s=> $(s).addEventListener('input', syncPreview));
+['#f-preview','#f-cover','#f-url','#f-song','#f-artist'].forEach(s=> $(s).addEventListener('input', syncPreview));
+
+// SONG/ALBUM NAME, AUTOMATICALLY: pasting a Spotify link (track, album, playlist —
+// all work) asks Spotify's public oEmbed endpoint for its title and drops it into the
+// Song name field — but only while that field is empty: your own typing always wins.
+// The artist can't come this way (Spotify's page blocks browser CORS), hence the field.
+let _metaT;
+async function fetchMeta(){
+  const u=$('#f-url').value.trim();
+  if(!/open\.spotify\.com\//.test(u) || $('#f-song').value.trim()) return;
+  try{
+    const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(u));
+    if(!r.ok) return;
+    const d=await r.json();
+    if(!$('#f-song').value.trim()){ $('#f-song').value=d.title||''; syncPreview(); }
+  }catch{}                              // offline etc. — just type the name yourself
+}
+$('#f-url').addEventListener('input', ()=>{ clearTimeout(_metaT); _metaT=setTimeout(fetchMeta, 400); });
 
 // Edit-existing dropdown: EVERY entry, newest first — essays by title, small entries
 // by "type · date · start of the line". Selecting one loads it and shows Delete.
@@ -1053,7 +1083,7 @@ $('#existing').addEventListener('change', e=>{
   $('#f-title').value=p.title||''; $('#f-slug').value=p.slug||''; $('#f-slug').dataset.touched = p.slug?'1':'';
   $('#f-preview').value = p.type==='picture' ? (p.caption||'') : (p.preview||'');
   $('#f-cover').value   = p.type==='picture' ? (p.src||'')     : (p.cover||'');
-  $('#f-url').value=p.url||'';
+  $('#f-url').value=p.url||''; $('#f-song').value=p.song||''; $('#f-artist').value=p.artist||'';
   body.value = p.type==='essay' ? (p.body||'') : (p.text||'');
   history=[body.value]; hi=0;
   $('#delete').style.display='';
@@ -1161,7 +1191,8 @@ $('#save').addEventListener('click', ()=>{
   const p = gather();
   if(p.type==='essay'   && (!p.title || !p.slug)) return msg('Title and slug are required.', true);
   if(p.type==='picture' && !p.src)                return msg('A picture needs its image URL.', true);
-  if((p.type==='song'||p.type==='inspiration') && !p.text) return msg('Write the line first.', true);
+  if(p.type==='song' && !p.text && !p.song)   return msg('Write a line or paste a link first.', true);
+  if(p.type==='inspiration' && !p.text)       return msg('Write the line first.', true);
   stage(p, editing);
   msg(`Saved — ${pending.length} change${pending.length>1?'s':''} waiting. Publish when ready.`);
 });
@@ -1238,7 +1269,7 @@ $('#f-image').addEventListener('change', async e=>{
   }catch(err){ msg(err.message, true); }
 });
 $('#clear').addEventListener('click', ()=>{
-  ['f-title','f-slug','f-preview','f-cover','f-url'].forEach(f=>$('#'+f).value='');
+  ['f-title','f-slug','f-preview','f-cover','f-url','f-song','f-artist'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
   editing=null; $('#existing').value=''; $('#delete').style.display='none';
   body.value=''; history=['']; hi=0; syncPreview(); msg('');
