@@ -260,6 +260,16 @@
   body.admin-mode>#admin{ display:block; max-width:900px; margin:0 auto; padding:2rem 0 5rem }
 
   .topline{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.4rem }
+  /* THE GATE: a single centred passphrase field; the desk (#desk) stays hidden until
+     #admin gains .unlocked — which only unlock() grants, and only after the passphrase
+     has actually decrypted the token. A door in front of the crypto lock. */
+  #gate{ max-width:420px; margin:16vh auto 0; text-align:center }
+  #gate input{ text-align:center }
+  #gate .btn{ margin-top:1.1rem }
+  #gate-msg{ font-style:italic; color:var(--oxblood); min-height:1.4em; margin-top:.7rem }
+  #desk{ display:none }
+  #admin.unlocked #gate{ display:none }
+  #admin.unlocked #desk{ display:block }
   /* form fields. font-size:16px stops iOS Safari zooming when you tap an input. */
   #admin input,#admin textarea,#admin select{ width:100%; font-family:inherit; font-size:16px; color:var(--ink);
     background:#fbf9f3; border:1px solid var(--hairline); padding:.6rem; margin:.3rem 0 0; border-radius:3px }
@@ -558,6 +568,19 @@ const CONFIG = {
     <a href="#">☞ back to the site</a>
   </div>
 
+  <!-- THE GATE. The desk stays closed until the passphrase turns in the lock: the same
+       passphrase that decrypts CONFIG.TOKEN_CIPHER (AES-GCM, in memory only — wrong
+       passphrase = the decrypt itself refuses = nothing opens, nothing can commit).
+       Asked once per visit; a refresh forgets. While TOKEN_CIPHER is null there is no
+       lock to test against, so the desk opens directly in local-only mode. -->
+  <div id="gate">
+    <span class="label">Passphrase</span>
+    <input id="gate-pass" type="password" placeholder="the passphrase that unlocks the desk…">
+    <div><button class="btn" id="unlock">Unlock</button></div>
+    <p id="gate-msg"></p>
+  </div>
+
+  <div id="desk">
   <!-- WHAT KIND OF ENTRY. Essay shows the full form; the small kinds hide what they don't
        need (the applyType() JS flips the groups below). No Date field anywhere: every entry
        is dated today automatically — that's the day-book's discipline. -->
@@ -583,7 +606,7 @@ const CONFIG = {
     <!-- …or pick a photo from this device. It gets committed into the repo's images/ folder through
          the GitHub API (so it needs the passphrase below), and its URL is filled in for you:
          an empty Cover field claims it, otherwise it lands in the body at the cursor. -->
-    <span class="label">…or upload an image <span class="faded">(commits to <code>images/</code>; needs the passphrase)</span></span>
+    <span class="label">…or upload an image <span class="faded">(commits to <code>images/</code>)</span></span>
     <input id="f-image" type="file" accept="image/*">
   </div>
   <div id="g-url">
@@ -652,12 +675,6 @@ Blank line between paragraphs."></textarea>
   <span class="label">Live preview — exactly how it will look on the site</span>
   <div id="preview"></div>
 
-  <!-- The gate. The passphrase decrypts CONFIG.TOKEN_CIPHER into the GitHub token, in memory only.
-       Wrong passphrase → decryption itself fails → nothing can be committed. That's the whole lock:
-       cryptography, not an if-statement. Asked once per visit; the token is never stored anywhere. -->
-  <span class="label">Passphrase <span class="faded">(unlocks publishing — asked once per visit)</span></span>
-  <input id="f-pass" type="password" placeholder="the passphrase that unlocks the key…">
-
   <div class="actions">
     <button class="btn" id="publish">Publish</button>
     <button class="btn ghost" id="clear">New / clear</button>
@@ -667,6 +684,7 @@ Blank line between paragraphs."></textarea>
   </div>
   <span class="label">Edit or delete an existing entry</span>
   <select id="existing"><option value="">— new entry —</option></select>
+  </div><!-- /desk -->
 </section>
 
 <!-- Lives outside everything because it floats over the page (position:fixed). -->
@@ -874,7 +892,9 @@ $('#ornament').addEventListener('click',()=>{ const m=$('#printmark'); m.style.d
 
 /* ---------- the writing desk (#admin) ----------
    A hash "route": when the URL is #admin, .admin-mode hides the site and shows only the editor. */
-function route(){ document.body.classList.toggle('admin-mode', location.hash==='#admin'); if(location.hash==='#admin') scrollTo(0,0); }
+function route(){ document.body.classList.toggle('admin-mode', location.hash==='#admin');
+  if(location.hash==='#admin'){ scrollTo(0,0);
+    if(!$('#admin').classList.contains('unlocked')) $('#gate-pass').focus(); } }
 addEventListener('hashchange', route); route();
 
 const body = $('#f-body');
@@ -1053,7 +1073,7 @@ function utf8ToB64(str){
 let TOKEN = null;                                             // memory only; gone on refresh
 async function getToken(){
   if(TOKEN) return TOKEN;
-  const pass = $('#f-pass').value;
+  const pass = $('#gate-pass').value;
   if(!pass) throw new Error('Enter the passphrase first.');
   const c  = CONFIG.TOKEN_CIPHER;
   const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
@@ -1064,6 +1084,17 @@ async function getToken(){
   }catch{ throw new Error('Wrong passphrase.'); }              // AES-GCM authenticates: a wrong key doesn't garble, it refuses
   return TOKEN;
 }
+
+// THE GATE: only a passphrase that actually decrypts the token opens the desk.
+function openDesk(){ $('#admin').classList.add('unlocked'); }
+if(!CONFIG.TOKEN_CIPHER) openDesk();           // no lock configured yet → local-only desk
+async function unlock(){
+  const m=$('#gate-msg');
+  try{ m.textContent='unlocking…'; await getToken(); m.textContent=''; openDesk(); }
+  catch(err){ m.textContent=err.message; }
+}
+$('#unlock').addEventListener('click', unlock);
+$('#gate-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') unlock(); });
 
 // one thin wrapper over the GitHub contents API, with human error messages.
 const ghUrl = path => `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`;
