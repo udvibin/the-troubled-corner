@@ -142,13 +142,6 @@
   .when .wsong{ font-variant:normal; letter-spacing:normal; font-style:italic; color:var(--faded) } /* the song half of a date line */
   .d{ font-variant:small-caps; font-style:normal; letter-spacing:.2em; color:var(--oxblood); font-size:16px; white-space:nowrap }
   .small-entry{ text-align:center; color:var(--faded); font-style:italic; margin:1.5rem 0; font-size:.97em }
-  /* a song's album art, pressed like a small plate: stripped to grayscale, re-inked
-     oxblood (sepia→hue-rotate lands the tone on the site's red), then multiply melts
-     it into the paper the way the tailpiece engraving sits — ink, not a photo */
-  .small-entry .art{ width:2.4em; height:2.4em; object-fit:cover; vertical-align:middle;
-    margin:0 .4em .15em .1em; border:1px solid var(--hairline);
-    filter:grayscale(1) sepia(1) hue-rotate(-32deg) saturate(2.4) brightness(1.04) contrast(.96);
-    mix-blend-mode:multiply }
   figure.plate{ margin:2.2rem auto; max-width:340px; text-align:center }   /* a small pasted photograph */
   figure.plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
   figure.plate figcaption{ font-style:italic; color:var(--faded); font-size:.85em; margin-top:.45rem }
@@ -357,8 +350,8 @@
 //   essay       — the big one: slug, title, date, preview (one-liner for the archive),
 //                 body (Markdown), cover (image url or null), songs [{text,url}] that
 //                 share its date line
-//   song        — one quiet line: date, text (Markdown, so *album* italicises), url,
-//                 art (album-art URL the desk saves automatically from Spotify links)
+//   song        — one quiet line: date, text (Markdown, so *album* italicises), url
+//                 (the text itself becomes the link)
 //   inspiration — one quiet line: date, text, url (optional)
 //   picture     — a small plate: date, src (image url), caption
 // The START/END markers are how the in-site editor finds this block when publishing —
@@ -756,10 +749,11 @@ function entryHTML(e){
   if(e.type==='picture')
     return `<figure class="plate"><img src="${e.src}" alt="">`+
       `<figcaption><span class="d">${fmtDay(e.date)}</span>${e.caption?` · ${mdInline(e.caption)}`:''}</figcaption></figure>`;
-  // song / inspiration — one quiet line, fronted by its mark (+ album art if saved)
-  const art = e.art ? `<img class="art" src="${e.art}" alt="">` : '';
-  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${art}${mdInline(e.text||'')}`+
-    (e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:'')+`</p>`;
+  // song / inspiration — one quiet line, fronted by its mark. If there's a link,
+  // the WHOLE line of text is the link (not a little arrow after it).
+  const line = mdInline(e.text||'');
+  const txt = e.url ? `<a target="_blank" rel="noopener" href="${e.url}">${line}</a>` : line;
+  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${txt}</p>`;
 }
 
 // The stream holds the last 3 essays and every small entry as new as the oldest of
@@ -805,10 +799,11 @@ function renderArchive(){
 function renderListening(){
   const rows=[];
   for(const e of [...ENTRIES].sort(byDateDesc)){
-    if(e.type==='song')
+    if(e.type==='song'){
+      const line = mdInline(e.text||'');
       rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
-        (e.art?`<img class="art" src="${e.art}" alt="">`:'')+mdInline(e.text||'')+
-        (e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:''));
+        (e.url?`<a target="_blank" rel="noopener" href="${e.url}">${line}</a>`:line));
+    }
     if(e.type==='essay') for(const s of (e.songs||[]))
       rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
         `<a target="_blank" rel="noopener" href="${s.url}"><i>${s.text}</i> ↗</a> <span class="faded">· with “${e.title}”</span>`);
@@ -936,12 +931,7 @@ function gather(){
     songs: (editing && editing.songs) || [] };
   if(type==='picture') return { type, date,
     src: $('#f-cover').value.trim(), caption: $('#f-preview').value.trim() };
-  const url=$('#f-url').value.trim() || null;
-  return { type, date, text: body.value.trim(), url,
-    // art comes from fetchArt(); if the fetch hasn't landed (or failed) while editing
-    // an entry whose url is unchanged, keep the art it already had
-    art: (linkArt && linkArt.url===url) ? linkArt.art
-       : (editing && editing.url===url) ? (editing.art||null) : null };
+  return { type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
 }
 // Two entries are "the same one": essays whenever slugs match; small entries when
 // type + date + text/src match (they have no slug — this triple is their identity).
@@ -1042,25 +1032,6 @@ $('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $
 $('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
 ['#f-preview','#f-cover','#f-url'].forEach(s=> $(s).addEventListener('input', syncPreview));
 
-// SONG ART: pasting a Spotify link fetches its artwork once through Spotify's public
-// oEmbed endpoint, and the art URL is SAVED INTO THE ENTRY (`art` field) — so the
-// published site shows the art without ever phoning Spotify itself, and the live
-// preview shows exactly what the site will. (Spotify only: YouTube's oEmbed refuses
-// browser requests.) Debounced so it fetches when you pause typing, not per keystroke.
-let linkArt=null, _linkT;                 // {url, art} for whatever is in the Link URL now
-async function fetchArt(){
-  const u=$('#f-url').value.trim();
-  linkArt=null;
-  if(/open\.spotify\.com\//.test(u)){
-    try{
-      const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(u));
-      if(r.ok){ const d=await r.json(); linkArt={url:u, art:d.thumbnail_url}; }
-    }catch{}                              // no art is fine — the line just prints plain
-  }
-  syncPreview();                          // the art pops into the live preview when it lands
-}
-$('#f-url').addEventListener('input', ()=>{ clearTimeout(_linkT); _linkT=setTimeout(fetchArt, 400); });
-
 // Edit-existing dropdown: EVERY entry, newest first — essays by title, small entries
 // by "type · date · start of the line". Selecting one loads it and shows Delete.
 let existingList=[];                    // the sorted entries the dropdown indexes into
@@ -1087,7 +1058,6 @@ $('#existing').addEventListener('change', e=>{
   history=[body.value]; hi=0;
   $('#delete').style.display='';
   applyType();                          // flips the field groups + redraws the preview
-  fetchArt();                           // and re-resolves the link's artwork
 });
 
 /* ---------- PUBLISH: commit the post straight into index.html on GitHub ----------
@@ -1271,7 +1241,7 @@ $('#clear').addEventListener('click', ()=>{
   ['f-title','f-slug','f-preview','f-cover','f-url'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
   editing=null; $('#existing').value=''; $('#delete').style.display='none';
-  body.value=''; history=['']; hi=0; linkArt=null; syncPreview(); msg('');
+  body.value=''; history=['']; hi=0; syncPreview(); msg('');
 });
 
 populateExisting();
