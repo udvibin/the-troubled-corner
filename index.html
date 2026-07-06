@@ -142,9 +142,13 @@
   .when .wsong{ font-variant:normal; letter-spacing:normal; font-style:italic; color:var(--faded) } /* the song half of a date line */
   .d{ font-variant:small-caps; font-style:normal; letter-spacing:.2em; color:var(--oxblood); font-size:16px; white-space:nowrap }
   .small-entry{ text-align:center; color:var(--faded); font-style:italic; margin:1.5rem 0; font-size:.97em }
-  /* a song's album art, pressed into its line like a small stamp */
+  /* a song's album art, pressed like a small plate: stripped to grayscale, re-inked
+     oxblood (sepia→hue-rotate lands the tone on the site's red), then multiply melts
+     it into the paper the way the tailpiece engraving sits — ink, not a photo */
   .small-entry .art{ width:2.4em; height:2.4em; object-fit:cover; vertical-align:middle;
-    margin:0 .4em .15em .1em; filter:sepia(.12) saturate(.9); border:1px solid var(--hairline) }
+    margin:0 .4em .15em .1em; border:1px solid var(--hairline);
+    filter:grayscale(1) sepia(1) hue-rotate(-32deg) saturate(2.4) brightness(1.04) contrast(.96);
+    mix-blend-mode:multiply }
   figure.plate{ margin:2.2rem auto; max-width:340px; text-align:center }   /* a small pasted photograph */
   figure.plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
   figure.plate figcaption{ font-style:italic; color:var(--faded); font-size:.85em; margin-top:.45rem }
