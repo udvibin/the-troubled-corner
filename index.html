@@ -142,6 +142,9 @@
   .when .wsong{ font-variant:normal; letter-spacing:normal; font-style:italic; color:var(--faded) } /* the song half of a date line */
   .d{ font-variant:small-caps; font-style:normal; letter-spacing:.2em; color:var(--oxblood); font-size:16px; white-space:nowrap }
   .small-entry{ text-align:center; color:var(--faded); font-style:italic; margin:1.5rem 0; font-size:.97em }
+  /* a song's album art, pressed into its line like a small stamp */
+  .small-entry .art{ width:2.4em; height:2.4em; object-fit:cover; vertical-align:middle;
+    margin:0 .4em .15em .1em; filter:sepia(.12) saturate(.9); border:1px solid var(--hairline) }
   figure.plate{ margin:2.2rem auto; max-width:340px; text-align:center }   /* a small pasted photograph */
   figure.plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
   figure.plate figcaption{ font-style:italic; color:var(--faded); font-size:.85em; margin-top:.45rem }
@@ -273,10 +276,6 @@
     background:none; border:0; padding:0; cursor:pointer;
     font-family:inherit; font-style:italic; font-size:.85em; color:var(--faded) }
   .passwrap #gate-show:hover{ color:var(--oxblood) }
-  /* the link proof card: album art + title of whatever the Link URL points at */
-  #linkcard{ display:flex; gap:.7rem; align-items:center; margin-top:.5rem; font-size:.9em }
-  #linkcard:empty{ display:none }
-  #linkcard img{ width:44px; height:44px; object-fit:cover; filter:sepia(.12) saturate(.9) }
   #gate-msg{ font-style:italic; color:var(--oxblood); min-height:1.4em; margin-top:.7rem }
   #desk{ display:none }
   #admin.unlocked #gate{ display:none }
@@ -354,7 +353,8 @@
 //   essay       — the big one: slug, title, date, preview (one-liner for the archive),
 //                 body (Markdown), cover (image url or null), songs [{text,url}] that
 //                 share its date line
-//   song        — one quiet line: date, text (Markdown, so *album* italicises), url
+//   song        — one quiet line: date, text (Markdown, so *album* italicises), url,
+//                 art (album-art URL the desk saves automatically from Spotify links)
 //   inspiration — one quiet line: date, text, url (optional)
 //   picture     — a small plate: date, src (image url), caption
 // The START/END markers are how the in-site editor finds this block when publishing —
@@ -621,8 +621,6 @@ const CONFIG = {
   <div id="g-url">
     <span class="label">Link URL <span class="faded">(optional — Spotify album links open the app on phones)</span></span>
     <input id="f-url" placeholder="https://open.spotify.com/album/…">
-    <!-- the proof card: filled by linkCard() with what the link actually points at -->
-    <div id="linkcard"></div>
   </div>
 
   <div id="g-body">
@@ -757,8 +755,9 @@ function entryHTML(e){
   if(e.type==='picture')
     return `<figure class="plate"><img src="${e.src}" alt="">`+
       `<figcaption><span class="d">${fmtDay(e.date)}</span>${e.caption?` · ${mdInline(e.caption)}`:''}</figcaption></figure>`;
-  // song / inspiration — one quiet line, fronted by its mark
-  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${mdInline(e.text||'')}`+
+  // song / inspiration — one quiet line, fronted by its mark (+ album art if saved)
+  const art = e.art ? `<img class="art" src="${e.art}" alt="">` : '';
+  return `<p class="small-entry"><span class="d">${fmtDay(e.date)}</span> · ${MARK[e.type]||''} — ${art}${mdInline(e.text||'')}`+
     (e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:'')+`</p>`;
 }
 
@@ -806,7 +805,8 @@ function renderListening(){
   const rows=[];
   for(const e of [...ENTRIES].sort(byDateDesc)){
     if(e.type==='song')
-      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — ${mdInline(e.text||'')}`+
+      rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
+        (e.art?`<img class="art" src="${e.art}" alt="">`:'')+mdInline(e.text||'')+
         (e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:''));
     if(e.type==='essay') for(const s of (e.songs||[]))
       rows.push(`<span class="d">${fmtFull(e.date)}</span> · ${MARK.song} — `+
@@ -935,7 +935,12 @@ function gather(){
     songs: (editing && editing.songs) || [] };
   if(type==='picture') return { type, date,
     src: $('#f-cover').value.trim(), caption: $('#f-preview').value.trim() };
-  return { type, date, text: body.value.trim(), url: $('#f-url').value.trim() || null };
+  const url=$('#f-url').value.trim() || null;
+  return { type, date, text: body.value.trim(), url,
+    // art comes from fetchArt(); if the fetch hasn't landed (or failed) while editing
+    // an entry whose url is unchanged, keep the art it already had
+    art: (linkArt && linkArt.url===url) ? linkArt.art
+       : (editing && editing.url===url) ? (editing.art||null) : null };
 }
 // Two entries are "the same one": essays whenever slugs match; small entries when
 // type + date + text/src match (they have no slug — this triple is their identity).
@@ -1036,23 +1041,24 @@ $('#f-title').addEventListener('input', e=>{ if(!$('#f-slug').dataset.touched) $
 $('#f-slug').addEventListener('input', e=>{ e.target.dataset.touched='1'; });
 ['#f-preview','#f-cover','#f-url'].forEach(s=> $(s).addEventListener('input', syncPreview));
 
-// THE LINK PROOF CARD: when the Link URL is a Spotify link, ask Spotify's public
-// oEmbed endpoint what it points at and show the art + title — so you know the right
-// song is on the other end before pressing. Desk-only: the site itself stays
-// links-not-embeds by design. (Spotify only: YouTube's oEmbed refuses browser CORS.)
-let _linkT;
-async function linkCard(){
-  const u=$('#f-url').value.trim(), box=$('#linkcard');
-  if(!/open\.spotify\.com\//.test(u)){ box.innerHTML=''; return; }
-  try{
-    const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(u));
-    if(!r.ok) throw 0;
-    const d=await r.json();
-    box.innerHTML=`<img src="${d.thumbnail_url}" alt=""><span>${d.title}<br><span class="faded">${d.provider_name}</span></span>`;
-  }catch{ box.innerHTML='<span class="faded">couldn’t read that link — check the URL</span>'; }
+// SONG ART: pasting a Spotify link fetches its artwork once through Spotify's public
+// oEmbed endpoint, and the art URL is SAVED INTO THE ENTRY (`art` field) — so the
+// published site shows the art without ever phoning Spotify itself, and the live
+// preview shows exactly what the site will. (Spotify only: YouTube's oEmbed refuses
+// browser requests.) Debounced so it fetches when you pause typing, not per keystroke.
+let linkArt=null, _linkT;                 // {url, art} for whatever is in the Link URL now
+async function fetchArt(){
+  const u=$('#f-url').value.trim();
+  linkArt=null;
+  if(/open\.spotify\.com\//.test(u)){
+    try{
+      const r=await fetch('https://open.spotify.com/oembed?url='+encodeURIComponent(u));
+      if(r.ok){ const d=await r.json(); linkArt={url:u, art:d.thumbnail_url}; }
+    }catch{}                              // no art is fine — the line just prints plain
+  }
+  syncPreview();                          // the art pops into the live preview when it lands
 }
-// debounced so it fetches once you pause typing, not per keystroke
-$('#f-url').addEventListener('input', ()=>{ clearTimeout(_linkT); _linkT=setTimeout(linkCard, 400); });
+$('#f-url').addEventListener('input', ()=>{ clearTimeout(_linkT); _linkT=setTimeout(fetchArt, 400); });
 
 // Edit-existing dropdown: EVERY entry, newest first — essays by title, small entries
 // by "type · date · start of the line". Selecting one loads it and shows Delete.
@@ -1080,7 +1086,7 @@ $('#existing').addEventListener('change', e=>{
   history=[body.value]; hi=0;
   $('#delete').style.display='';
   applyType();                          // flips the field groups + redraws the preview
-  linkCard();                           // and refreshes the link proof card
+  fetchArt();                           // and re-resolves the link's artwork
 });
 
 /* ---------- PUBLISH: commit the post straight into index.html on GitHub ----------
@@ -1264,7 +1270,7 @@ $('#clear').addEventListener('click', ()=>{
   ['f-title','f-slug','f-preview','f-cover','f-url'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
   editing=null; $('#existing').value=''; $('#delete').style.display='none';
-  body.value=''; history=['']; hi=0; syncPreview(); linkCard(); msg('');
+  body.value=''; history=['']; hi=0; linkArt=null; syncPreview(); msg('');
 });
 
 populateExisting();
