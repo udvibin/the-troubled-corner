@@ -13,7 +13,6 @@ Everything ships as plain static files — no framework, no build step, no serve
   - `<body>` — the trinket `<symbol>` block, masthead, then **empty containers** (`#stream`, `#archive`, `#listening-view`) that JS fills; the colophon is static prose behind a door.
   - last `<script>` — **BEHAVIOUR**: `mdToHtml()` (a tiny no-library Markdown renderer), the day-book renderers (`renderStream/renderArchive/renderListening/renderFooter`), wake/door/unfold clicks, the `#admin` writing desk, publishing.
 - **`fonts/`** — self-hosted font files Google doesn't serve: `RoyalInitialen.ttf` and `Yinit.otf` — **both** wired via `@font-face` as drop-cap faces (`.dropcap` / `.dropcap.yinit`).
-- **`encrypt-token.html`** — throwaway tool to encrypt the GitHub token for the editor. Run once, then delete.
 - **`spec.md`** — the full design/spec source of truth (has the current done/to-do list).
 - **`dropcat.md`** — parked side-project idea (a full A–Z cat drop-cap set).
 - **`CLAUDE.md`** — this file.

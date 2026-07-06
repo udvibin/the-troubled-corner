@@ -182,13 +182,12 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    date; Delete asks first). check.js rebuilt (scratchpad), all checks green; verified
    with headless-Edge screenshots. **Remaining**: Uday eyeballs the live page, then
    delete `mock.html` + `Selected Ornaments - Final.html`.
-2. **Fill the footer social URLs** — instagram / spotify / letterboxd are `href="#"`
-   placeholders in the footer `tp-links` block.
-3. **Go live for publishing (manual, ~10 min):** fine-grained PAT (this repo only,
-   Contents R/W) → `encrypt-token.html` → paste JSON into `CONFIG.TOKEN_CIPHER` →
-   delete encrypt-token.html → push.
-4. **Commit housekeeping**: day-book rebuild is uncommitted; trinkets.md, docs/ are
-   untracked; `images/tailpiece.png` (3.8MB original) should be deleted.
+2. ~~Fill the footer social URLs~~ ✅ done 2026-07-05 (github/instagram/spotify/
+   letterboxd profiles wired; footer = "all of it, by me · since 2026" + "more of me"
+   with the fern pointing at the link row).
+3. ~~Go live for publishing~~ ✅ done 2026-07-05 — TOKEN_CIPHER set in CONFIG,
+   encrypt-token.html deleted. Publishing works from any device with the passphrase.
+4. **Commit housekeeping**: `images/tailpiece.png` (3.8MB original) should be deleted.
 5. **Trinket iterations** (Claude Design, new chat per ornament): improve ivy tendril
    (snail done in-code 2026-07-04 as a concentric spiral); unpressed: plate frame,
    smoke curl. **Masthead device**: Uday isn't sold on the hat — press candidates in

@@ -236,12 +236,12 @@
      relative + z-index keep the words crisp above the plate rising behind them. */
   .tp-text{ position:relative; z-index:1; text-align:center; margin:0 0 1.8rem }
   .tp-title{ font-size:1.35rem; letter-spacing:.06em; color:var(--ink) }
-  .tp-tag{ font-style:italic; color:var(--faded); margin:.15em 0 .7em }
+  /* the two quiet lines around the links: same .15em breath above and below the tag line */
+  .tp-tag{ font-style:italic; color:var(--faded); margin:.15em 0 }
   .tp-links{ font-variant:small-caps; letter-spacing:.1em }
   .tp-links a{ margin:0 .35em }
-  /* "more of me:" sits on its own quiet line above the link row */
-  .tp-more{ font-style:italic; color:var(--faded); margin:.9em 0 .15em }
-  .tp-legal{ font-size:.85em; color:var(--faded); margin-top:.7em }
+  /* "more of me" sits on its own quiet line above the link row, fern pointing onward */
+  .tp-more{ font-style:italic; color:var(--faded); margin:.15em 0 }
 
   /* back-to-top button. position:fixed = stays pinned to the screen corner while you scroll
      (vs the page). It starts invisible (opacity:0); JS adds .show past 600px of scroll. */
@@ -314,7 +314,7 @@
     .editor-row{ flex-direction:column }
     .cheat{ position:static; flex-basis:auto; width:100% }
     /* footer text a step smaller on phones */
-    .tp-title{ font-size:1.15rem } .tp-tag{ font-size:.9rem } .tp-links{ font-size:.95rem } .tp-legal{ font-size:.8rem }
+    .tp-title{ font-size:1.15rem } .tp-tag{ font-size:.9rem } .tp-links{ font-size:.95rem }
   }
 </style>
 </head>
@@ -366,7 +366,7 @@ const CONFIG = {
   OWNER: "udvibin",
   REPO:  "the-troubled-corner",
   BRANCH:"master",
-  TOKEN_CIPHER: null               // { "salt":"…", "iv":"…", "ct":"…" } — make with encrypt-token.html; null = publish stays local-only
+  TOKEN_CIPHER: {"salt":"Xo6jhi9GczvAvLlK6dz1tw==","iv":"ho8eBtU8C8MMz0hi","ct":"lviKOgE87akHMnNaW/19NuLO+m8sc8EkMa60pJ2Zd7xrAVLdolGsqNCcZSajGl8c2WyqzdOX0TvJei734zhh7foX23fBpk3kEOYBQ94mI0JN+DQchwimvbukDHEx2w8S10DwhgUaTms7EY5Kng=="}               // { "salt":"…", "iv":"…", "ct":"…" } — make with encrypt-token.html; null = publish stays local-only
 };
 // ---------------------------------------------------------------------------
 </script>
@@ -532,17 +532,16 @@ const CONFIG = {
   <div class="tp-text">
     <div class="tp-title">— the troubled corner —</div>
     <!-- the authorship line: ideas get argued over with machines, the words don't -->
-    <div class="tp-tag">all of it, by me</div>
-    <div class="tp-more">more of me:</div>
+    <div class="tp-tag">all of it, by me · since 2026</div>
+    <!-- the fern is the site's "onward" pointer — here it points at the links below -->
+    <div class="tp-more">more of me <svg class="orn orn-fern"><use href="#o-fern"/></svg></div>
     <nav class="tp-links" aria-label="footer">
       <a href="mailto:udayg693@gmail.com">email</a> ·
-      <a href="https://github.com/udvibin/the-troubled-corner">github</a> ·
-      <!-- ponytail: drop the real profile URLs in as they come; # until then -->
-      <a href="#">instagram</a> ·
-      <a href="#">spotify</a> ·
-      <a href="#">letterboxd</a>
+      <a href="https://github.com/udvibin" target="_blank" rel="noopener">github</a> ·
+      <a href="https://www.instagram.com/uday_g15/" target="_blank" rel="noopener">instagram</a> ·
+      <a href="https://open.spotify.com/user/leggob0is" target="_blank" rel="noopener">spotify</a> ·
+      <a href="https://letterboxd.com/moviesoverlove/" target="_blank" rel="noopener">letterboxd</a>
     </nav>
-    <div class="tp-legal">since 2026</div>
   </div>
   <!-- THE TAILPIECE. The full closing engraving (images/tailpiece.jpg), risen behind the
        end of the page — the "sinking page" blend. -->
