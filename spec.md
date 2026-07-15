@@ -194,6 +194,19 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    `Selected Ornaments - Final.html` kept in the working tree for now (Uday's call —
    they're untracked, so deleting would be unrecoverable).
 
+### Landed 2026-07-15 (third pass) — code-review fixes ✅
+Multi-angle review of the day's diff; all confirmed findings fixed: the desk's live
+preview no longer shows the share line (it would have shared the PUBLISHED essay, not
+the draft); share links carry `href="#"` (keyboard/screen-reader reachable); an
+in-progress "pressing the card…" state guards double-taps and gives instant feedback;
+`wrapLines` hard-breaks words wider than a line (long URLs stayed inside the card);
+the drop cap skips leading headings; cards export as JPEG (~200KB vs ~2MB PNG) with
+the palette read from `:root` at draw time and every layout number in one spec object
+per format; `SITE_URL` derives from `CONFIG.OWNER/REPO`; footer wordmark got the same
+`clamp()` floor as the masthead; remaining ≥.8rem gaps snapped to the spacing scale;
+`og:image` now points at a dedicated light 1200×630 crop (`images/og.jpg`, 276KB —
+scrapers skip heavy 2:1 originals).
+
 ### Landed 2026-07-15 (second pass) — type, rhythm, tagline, share cards ✅
 - **Body type up a point**: 20px desktop / 18px phones (was 19/17) — easier reading.
 - **Vertical rhythm**: a five-step spacing scale in `:root` (`--s1:.8rem` … `--s6:4.8rem`);

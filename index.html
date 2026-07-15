@@ -29,7 +29,9 @@
 <meta name="description" content="a small, quiet corner of the web — essays, songs, and found things, set like a page from an old book.">
 <meta property="og:title" content="— the troubled corner —">
 <meta property="og:description" content="a small, quiet corner of the web — essays, songs, and found things.">
-<meta property="og:image" content="https://udvibin.github.io/the-troubled-corner/images/tailpiece.jpg">
+<!-- a dedicated 1200×630 crop of the tailpiece: link-preview scrapers skip heavy images
+     and crop 2:1 originals badly, so the og image is its own light, pre-cropped file -->
+<meta property="og:image" content="https://udvibin.github.io/the-troubled-corner/images/og.jpg">
 <!-- tints the phone browser's chrome to match the paper -->
 <meta name="theme-color" content="#f3efe3">
 <!-- the tab icon: the hat device, as a small SVG file beside this one -->
@@ -151,7 +153,7 @@
 
   /* headings. h2.sec survives for the writing desk; the day-book itself uses h2.t below. */
   h2.sec{ font-family:"IM Fell DW Pica SC",serif; font-weight:400; color:var(--oxblood);
-    letter-spacing:.1em; font-size:1.7rem; margin:0 0 1.2rem }
+    letter-spacing:.1em; font-size:1.7rem; margin:0 0 var(--s2) }
   /* subheadings (the colophon uses these): same font, italic, a step below */
   h3{ font-family:"IM Fell DW Pica",serif; font-weight:400; font-style:italic; font-size:1.35rem; margin:1.6rem 0 .4rem }
 
@@ -178,7 +180,7 @@
   .lrow.small .lbody{ color:var(--faded); font-style:italic; font-size:.97em }
   .lrow .thumb{ width:120px; display:block; filter:sepia(.12) saturate(.9) }
   /* an essay row unfolds in place: clicking its title fills + reveals .full below the preview */
-  .lrow .full{ display:none; margin-top:1rem; font-size:1.05rem }
+  .lrow .full{ display:none; margin-top:var(--s1); font-size:1.05rem }
   .lrow.open .full{ display:block; animation:foldin .45s ease }
   /* month heads, an ivy sprig either side (ivy size lives in the trinket panel) */
   .mo{ text-align:center; font-family:"IM Fell DW Pica SC",serif; color:var(--oxblood);
@@ -226,7 +228,7 @@
     color:var(--oxblood); font-size:1.2rem; letter-spacing:.06em; margin:var(--s2) 0 .3rem }
   /* inline figures: float an image to one side and let the text wrap around it (gwern-style).
      Put a <figure class="fig fig-left"> (or fig-right) before a paragraph; the text flows beside it. */
-  .post .body figure.fig{ margin:.2rem 0 1rem }
+  .post .body figure.fig{ margin:.2rem 0 var(--s1) }
   .post .body figure.fig img{ width:100%; display:block; height:auto; filter:saturate(.94) }
   .post .body figure.fig figcaption{ font-style:italic; color:var(--faded); font-size:.82em; text-align:center; margin-top:.4rem }
   .post .body figure.fig-left{ float:left;  width:44%; margin:.3rem 1.5rem .8rem 0 }
@@ -266,7 +268,9 @@
   /* The footer text stays on paper, and the ghost of the sky condenses beneath it —
      relative + z-index keep the words crisp above the plate rising behind them. */
   .tp-text{ position:relative; z-index:1; text-align:center; margin:0 0 var(--s2) }
-  .tp-title{ font-size:1.35rem; letter-spacing:.06em; color:var(--ink) }
+  /* clamp for the same reason as the masthead h1: the wordmark + em-dashes must hold
+     one line on a 320px phone, where a fixed 1.35rem would be a few px from wrapping */
+  .tp-title{ font-size:clamp(1.1rem,6vw,1.35rem); letter-spacing:.06em; color:var(--ink) }
   /* the two quiet lines around the links: same .15em breath above and below the tag line */
   .tp-tag{ font-style:italic; color:var(--faded); margin:.15em 0 }
   .tp-links{ font-variant:small-caps; letter-spacing:.1em }
@@ -344,6 +348,9 @@
   /* preview box capped at the real reading width so it matches the published post exactly */
   #preview{ border:1px solid var(--hairline); background:#fbf9f3; padding:1.2rem 1.4rem; margin-top:.4rem; border-radius:2px; max-width:var(--measure) }
   #preview .post{ border:0; padding:0 }
+  /* no share line in the desk's preview: clicking it there would share the PUBLISHED copy
+     of the essay (the card is drawn from ENTRIES), not the draft on the desk — a trap. */
+  #preview .shareline{ display:none }
 
   /* @media = apply these rules ONLY when the screen is 600px wide or less (phones). */
   @media (max-width:600px){
@@ -354,7 +361,7 @@
     .ornament{ width:88px; margin-bottom:var(--s1) }
     .toolbar .undo{ margin-left:0 }   /* on phones, let Undo wrap instead of stranding at the right */
     /* floated figures get cramped on a narrow screen — make them full-width instead. */
-    .post .body figure.fig-left, .post .body figure.fig-right{ float:none; width:100%; margin:1rem 0 }
+    .post .body figure.fig-left, .post .body figure.fig-right{ float:none; width:100%; margin:var(--s1) 0 }
     /* drop caps a size down so they don't swallow a phone paragraph */
     .dropcap::first-letter{ font-size:5.2rem; margin:.3rem .08em -2rem 0 }
     /* archive ledger: the date gutter stacks above the entry instead of beside it */
@@ -786,9 +793,11 @@ const stamp=(id,cls)=>`<svg class="orn ${cls}"><use href="#${id}"/></svg>`;
 const MARK={ song:`<span class="tip" role="img" aria-label="played">${stamp('o-syrinx','orn-sm')}</span>`,
              inspiration:`<span class="tip" role="img" aria-label="inspiration">${stamp('o-snail','orn-snail')}</span>` };
 const FIN=stamp('o-seed','fin'), DIVIDER=`<div class="divider">${stamp('o-fleuron','orn-div')}</div>`;
-// the quiet share line under an essay — "story" (Instagram portrait) or "card" (Twitter landscape)
+// the quiet share line under an essay — "story" (Instagram portrait) or "card" (Twitter landscape).
+// href="#" makes the links tab-focusable and Enter-activatable (an <a> with no href is
+// invisible to keyboards and screen readers); the click handler preventDefault()s the jump.
 const shareLine = slug => `<div class="shareline">pass it on — `+
-  `<a data-share="story" data-slug="${slug}">story</a> · <a data-share="card" data-slug="${slug}">card</a></div>`;
+  `<a href="#" data-share="story" data-slug="${slug}">story</a> · <a href="#" data-share="card" data-slug="${slug}">card</a></div>`;
 
 // The end-mark IS the essay's final full stop: strip the trailing period off the last
 // paragraph and press the seed-pod in its place.
@@ -894,19 +903,33 @@ function renderListening(){
    post it, paste the copied link into the story's link sticker. On Twitter, attach the
    card and paste the link as the tweet text. No library, no server — the same browser
    that renders the page renders the card. */
-const SITE_URL='https://udvibin.github.io/the-troubled-corner/';
+// the site's address, derived from CONFIG so a repo/account rename can't strand the cards
+const SITE_URL=`https://${CONFIG.OWNER}.github.io/${CONFIG.REPO}/`;
 
-// the essay's opening as plain words: render the Markdown, then keep only the text
-function essayPlain(e){ const d=el('div',null,mdToHtml(e.body)); return d.textContent.replace(/\s+/g,' ').trim(); }
+// the essay's opening as plain words: render the Markdown, drop the headings (they're
+// signposts, not prose — a card teaser shouldn't open on one), then keep only the text
+function essayPlain(e){ const d=el('div',null,mdToHtml(e.body));
+  d.querySelectorAll('h2,h3').forEach(h=>h.remove());
+  return d.textContent.replace(/\s+/g,' ').trim(); }
 
 // break text into lines that fit `width`; the first `indented` lines are narrower by
 // `indent` (the notch the drop cap sits in). At most maxLines — ends with " …" if cut.
 function wrapLines(ctx,text,width,indent,indented,maxLines){
-  const words=text.split(' '), lines=[]; let line='';
-  for(const wd of words){
-    const max=width-(lines.length<indented?indent:0);
-    const t=line?line+' '+wd:wd;
-    if(line && ctx.measureText(t).width>max){ lines.push(line); line=wd } else line=t;
+  const lines=[]; let line='';
+  const wide=w=>ctx.measureText(w).width;
+  for(let wd of text.split(' ')){
+    let max=width-(lines.length<indented?indent:0);
+    if(line && wide(line+' '+wd)>max){ lines.push(line); line='';   // word won't fit — close the line
+      max=width-(lines.length<indented?indent:0); }
+    // wd now opens a fresh line; if ALONE it is still too wide (a long URL, say) it
+    // would paint past the card's edge — hard-break it by letters until the rest fits
+    while(!line && wd.length>1 && wide(wd)>max){
+      let cut=wd.length; while(cut>1 && wide(wd.slice(0,cut))>max) cut--;
+      lines.push(wd.slice(0,cut)); wd=wd.slice(cut);
+      if(lines.length>maxLines) break;
+      max=width-(lines.length<indented?indent:0);
+    }
+    line=line?line+' '+wd:wd;
     if(lines.length>maxLines) break;                       // we have enough — stop measuring
   }
   if(line) lines.push(line);
@@ -915,63 +938,72 @@ function wrapLines(ctx,text,width,indent,indented,maxLines){
   return lines;
 }
 
-// paint one card and hand back the canvas
+// paint one card and hand back the canvas. Every number for a layout lives in its ONE
+// spec object below — sizes in px of the finished image, the *Gap/*Step values are
+// baseline hops — so a format can be retuned (or a third added) in one place.
 async function drawCard(e,fmt){
   // a canvas can only set type in faces that are ALREADY loaded — ask for each first
   await Promise.all(['80px "IM Fell DW Pica"','italic 80px "IM Fell DW Pica"','80px Royal']
     .map(f=>document.fonts.load(f)));
-  const story=fmt==='story';
-  const W=story?1080:1600, H=story?1920:900, mx=story?110:150;    // page size + side margin
-  const c=Object.assign(el('canvas'),{width:W,height:H}), ctx=c.getContext('2d');
+  const L = fmt==='story'
+    ? { W:1080, H:1920, mx:110, dateY:300, datePx:28, titleGap:92, titlePx:64, titleStep:78,
+        ruleGap:44, bodyGap:140, lh:62, bodyPx:38, foot:330, footGaps:[78,58,70], footPx:[32,36,30] }
+    : { W:1600, H:900,  mx:150, dateY:150, datePx:26, titleGap:72, titlePx:56, titleStep:66,
+        ruleGap:32, bodyGap:108, lh:56, bodyPx:34, foot:170, footGaps:[56,48,52], footPx:[28,32,26] };
+  // the site's own inks, read once from :root — the card can never drift from the page
+  const v=getComputedStyle(document.documentElement),
+        C={ paper:v.getPropertyValue('--paper').trim(), ink:v.getPropertyValue('--ink').trim(),
+            oxblood:v.getPropertyValue('--oxblood').trim(), faded:v.getPropertyValue('--faded').trim() };
+  const c=el('canvas'); c.width=L.W; c.height=L.H;
+  const ctx=c.getContext('2d');
 
   // the paper: flat ivory, the aged-edge vignette, three faint foxing stains — the same
   // patina the site wears, drawn fresh at card size
-  ctx.fillStyle='#f3efe3'; ctx.fillRect(0,0,W,H);
-  const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.72);
+  ctx.fillStyle=C.paper; ctx.fillRect(0,0,L.W,L.H);
+  const vg=ctx.createRadialGradient(L.W/2,L.H/2,Math.min(L.W,L.H)*.35,L.W/2,L.H/2,Math.max(L.W,L.H)*.72);
   vg.addColorStop(0,'rgba(80,60,35,0)'); vg.addColorStop(1,'rgba(80,60,35,.15)');
-  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=vg; ctx.fillRect(0,0,L.W,L.H);
   [[.2,.16],[.84,.3],[.32,.86]].forEach(([x,y])=>{
-    const g=ctx.createRadialGradient(W*x,H*y,0,W*x,H*y,W*.2);
+    const g=ctx.createRadialGradient(L.W*x,L.H*y,0,L.W*x,L.H*y,L.W*.2);
     g.addColorStop(0,'rgba(140,100,60,.05)'); g.addColorStop(1,'rgba(140,100,60,0)');
-    ctx.fillStyle=g; ctx.fillRect(0,0,W,H); });
+    ctx.fillStyle=g; ctx.fillRect(0,0,L.W,L.H); });
 
-  const inner=W-2*mx, rule=(y,w=280)=>{ ctx.fillStyle='rgba(26,26,26,.25)'; ctx.fillRect(W/2-w/2,y,w,2) };
-  let y=story?300:150; ctx.textAlign='center';
+  const inner=L.W-2*L.mx, rule=y=>{ ctx.fillStyle='rgba(26,26,26,.25)'; ctx.fillRect(L.W/2-140,y,280,2) };
+  let y=L.dateY; ctx.textAlign='center';
 
   // the date — small caps by hand (canvas has no font-variant): uppercase + tracking
-  ctx.fillStyle='#7c1f1f'; ctx.font=(story?28:26)+'px "IM Fell DW Pica"';
-  try{ ctx.letterSpacing='8px' }catch(_){}
-  ctx.fillText(fmtFull(e.date).toUpperCase(), W/2, y);
-  try{ ctx.letterSpacing='0px' }catch(_){}
+  ctx.fillStyle=C.oxblood; ctx.font=L.datePx+'px "IM Fell DW Pica"';
+  ctx.letterSpacing='8px';
+  ctx.fillText(fmtFull(e.date).toUpperCase(), L.W/2, y);
+  ctx.letterSpacing='0px';
 
   // the title, wrapped if it must be
-  ctx.font=(story?64:56)+'px "IM Fell DW Pica"';
-  y+=story?92:72;
-  for(const l of wrapLines(ctx,e.title,inner,0,0,3)){ ctx.fillText(l,W/2,y); y+=story?78:66 }
-  y-=story?78:66;                                          // back to the last line's baseline
-  rule(y+(story?44:32));
+  ctx.font=L.titlePx+'px "IM Fell DW Pica"';
+  y+=L.titleGap;
+  for(const l of wrapLines(ctx,e.title,inner,0,0,3)){ ctx.fillText(l,L.W/2,y); y+=L.titleStep }
+  y-=L.titleStep;                                          // back to the last line's baseline
+  rule(y+L.ruleGap);
 
   // the opening, the drop cap set three lines deep into it
-  const lh=story?62:56, bodyPx=story?38:34;
-  let b=y+(story?140:108);                                 // first body baseline
+  let b=y+L.bodyGap;                                       // first body baseline
   const text=essayPlain(e), cap=text[0]||'', rest=text.slice(1).trim();
   ctx.textAlign='left';
-  ctx.font=(lh*3)+'px Royal'; const capW=ctx.measureText(cap).width+26;
-  ctx.fillStyle='#7c1f1f'; ctx.fillText(cap, mx, b+2*lh);  // cap baseline = 3rd line's
-  const footTop=H-(story?330:170);                         // where the foot begins
-  const maxLines=Math.floor((footTop-b-lh)/lh);            // as many lines as fit above it
-  ctx.font=bodyPx+'px "IM Fell DW Pica"'; ctx.fillStyle='#1f1b16';
+  ctx.font=(L.lh*3)+'px Royal'; const capW=ctx.measureText(cap).width+26;
+  ctx.fillStyle=C.oxblood; ctx.fillText(cap, L.mx, b+2*L.lh);   // cap baseline = 3rd line's
+  const footTop=L.H-L.foot;                                // where the foot begins
+  const maxLines=Math.max(1, Math.floor((footTop-b-L.lh)/L.lh));  // however many lines fit above it
+  ctx.font=L.bodyPx+'px "IM Fell DW Pica"'; ctx.fillStyle=C.ink;
   wrapLines(ctx,rest,inner,capW,3,maxLines)
-    .forEach((l,i)=>ctx.fillText(l, mx+(i<3?capW:0), b+i*lh));
+    .forEach((l,i)=>ctx.fillText(l, L.mx+(i<3?capW:0), b+i*L.lh));
 
   // the foot: a rule, then where the rest of the piece lives
   let fy=footTop; ctx.textAlign='center'; rule(fy);
-  ctx.fillStyle='#6b6256'; ctx.font='italic '+(story?32:28)+'px "IM Fell DW Pica"';
-  ctx.fillText('the rest is kept at', W/2, fy+=(story?78:56));
-  ctx.fillStyle='#7c1f1f'; ctx.font=(story?36:32)+'px "IM Fell DW Pica"';
-  ctx.fillText(SITE_URL.replace('https://','').replace(/\/$/,''), W/2, fy+=(story?58:48));
-  ctx.fillStyle='#1f1b16'; ctx.font=(story?30:26)+'px "IM Fell DW Pica"';
-  ctx.fillText('— the troubled corner —', W/2, fy+=(story?70:52));
+  ctx.fillStyle=C.faded; ctx.font='italic '+L.footPx[0]+'px "IM Fell DW Pica"';
+  ctx.fillText('the rest is kept at', L.W/2, fy+=L.footGaps[0]);
+  ctx.fillStyle=C.oxblood; ctx.font=L.footPx[1]+'px "IM Fell DW Pica"';
+  ctx.fillText(SITE_URL.replace('https://','').replace(/\/$/,''), L.W/2, fy+=L.footGaps[1]);
+  ctx.fillStyle=C.ink; ctx.font=L.footPx[2]+'px "IM Fell DW Pica"';
+  ctx.fillText('— the troubled corner —', L.W/2, fy+=L.footGaps[2]);
   return c;
 }
 
@@ -979,10 +1011,13 @@ async function drawCard(e,fmt){
 async function shareCard(slug,fmt,from){
   const e=ENTRIES.find(x=>x.type==='essay'&&x.slug===slug); if(!e) return;
   const line=from.closest('.shareline'), old=line.innerHTML;
+  // instant feedback — and because this removes the links, a double-tap can't fire twice
+  line.innerHTML='<span>pressing the card…</span>';
   const c=await drawCard(e,fmt), url=`${SITE_URL}#post-${e.slug}`;
   try{ await navigator.clipboard.writeText(url) }catch(_){}
+  // JPEG, not PNG: the paper texture compresses far smaller and encodes faster
   c.toBlob(async blob=>{
-    const file=new File([blob],`${e.slug}-${fmt}.png`,{type:'image/png'});
+    const file=new File([blob],`${e.slug}-${fmt}.jpg`,{type:'image/jpeg'});
     if(navigator.canShare && navigator.canShare({files:[file]})){
       try{ await navigator.share({files:[file], title:e.title, text:url}) }catch(_){} // user closing the sheet is fine
     }else{
@@ -991,7 +1026,7 @@ async function shareCard(slug,fmt,from){
     }
     line.innerHTML='<span>the card is yours — its link is on your clipboard, paste it where the card goes</span>';
     setTimeout(()=>line.innerHTML=old, 4500);
-  },'image/png');
+  },'image/jpeg',.92);
 }
 
 /* ---------- a tiny Markdown → HTML renderer (no library) ----------
