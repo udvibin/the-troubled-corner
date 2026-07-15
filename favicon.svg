@@ -1,0 +1,10 @@
+<!-- The browser-tab icon: the site's printer's device (the hat and its curl of smoke),
+     same drawing as the masthead but with much thicker strokes — at 16px the masthead's
+     fine 1.2 lines would vanish, so a favicon needs its own heavier cut. Oxblood, so the
+     mark stays legible on both light and dark browser chrome. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 -2 104 60" fill="none" stroke="#7c1f1f" stroke-width="6" stroke-linecap="round">
+  <path d="M16 42 C40 51 80 51 104 42"/>
+  <path d="M40 44 C40 24 48 15 60 15 C72 15 80 24 80 44"/>
+  <path d="M40 35 C52 41 68 41 80 35"/>
+  <path d="M97 38 C105 31 93 26 101 18 C107 12 102 8 108 3" opacity=".6" stroke-width="4.5"/>
+</svg>

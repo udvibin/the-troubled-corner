@@ -189,7 +189,27 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    encrypt-token.html deleted (recoverable from git history if a re-key is ever
    needed). Publishing verified end-to-end from the live site (2026-07-07: the desk
    made real commits). Re-keyed once after a forgotten passphrase.
-4. **Commit housekeeping**: `images/tailpiece.png` (3.8MB original) should be deleted.
+4. ~~Commit housekeeping~~ ✅ done 2026-07-15 — `images/tailpiece.png` (3.8MB original)
+   deleted (the served `tailpiece.jpg` stays); `AGENTS.md` committed. `mock.html` +
+   `Selected Ornaments - Final.html` kept in the working tree for now (Uday's call —
+   they're untracked, so deleting would be unrecoverable).
+
+### Landed 2026-07-15 — mobile polish + link-sharing basics ✅
+- **Masthead fits phones**: title `clamp()` minimum lowered (2.4rem → 1.5rem, 7.5vw
+  preferred) so "— the troubled corner —" sits on one line down to 320px; ornament
+  88px and tighter padding on mobile — the newest entry now lands above the fold.
+- **Footer un-shrunk on mobile**: the old phone override made it fine print; it now
+  holds desktop sizes (`footer` .95em) and the link row wraps on a roomy line-height.
+- **Tailpiece with presence on phones**: 135vw wide, biased 12vw left so the man and
+  tree keep their place and the red sun stays just in frame (right field crops away).
+- **iOS paper fix**: the patina (foxing/vignette/grain) moved from
+  `background-attachment:fixed` (ignored by iOS Safari — would stretch the vignette
+  over the whole scroll height) to a `position:fixed` `body::before` pane. Desktop
+  renders identically.
+- **Link-sharing basics**: `<meta name="description">`, `og:title/description/image`
+  (the tailpiece), `theme-color` paper tint, and a `favicon.svg` — the hat device
+  re-cut with heavier strokes so it reads at 16px.
+- Dev nicety: `.claude/launch.json` serves the folder locally for previewing.
 
 ### Landed since the build (2026-07-06 → 07)
 - **The desk is gated**: `#admin` shows one centred passphrase field (with a

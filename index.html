@@ -25,6 +25,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The text in the browser TAB. -->
 <title>— the troubled corner —</title>
+<!-- what search engines and link previews say about the page (WhatsApp/iMessage etc. read the og: pair). -->
+<meta name="description" content="a small, quiet corner of the web — essays, songs, and found things, set like a page from an old book.">
+<meta property="og:title" content="— the troubled corner —">
+<meta property="og:description" content="a small, quiet corner of the web — essays, songs, and found things.">
+<meta property="og:image" content="https://udvibin.github.io/the-troubled-corner/images/tailpiece.jpg">
+<!-- tints the phone browser's chrome to match the paper -->
+<meta name="theme-color" content="#f3efe3">
+<!-- the tab icon: the hat device, as a small SVG file beside this one -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <!-- preconnect = "start the handshake to this server early" so the font loads a bit faster. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,10 +75,17 @@
     margin:0; color:var(--ink);
     font:400 19px/1.64 "IM Fell DW Pica",Georgia,serif;
     -webkit-font-smoothing:antialiased; padding:0 22px;
-    /* AGED PAPER, all in CSS (no image file): faint brown "foxing" stains, an aged edge
-       vignette, then a fine grayscale grain from an inline SVG noise filter. Layers paint
-       top-to-bottom. background-attachment:fixed keeps the texture still while text scrolls. */
     background-color:var(--paper);
+  }
+  /* AGED PAPER, all in CSS (no image file): faint brown "foxing" stains, an aged edge
+     vignette, then a fine grayscale grain from an inline SVG noise filter. Layers paint
+     top-to-bottom. It lives on a position:fixed pseudo-element (a screen-sized pane pinned
+     behind the page, z-index:-1) rather than as body background-attachment:fixed, because
+     iOS Safari ignores `fixed` attachment and would stretch the vignette over the whole
+     scroll height. A fixed element gives the same "texture stands still while text scrolls"
+     effect everywhere. */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1;
     background-image:
       radial-gradient(circle at 18% 20%, rgba(150,110,60,.06), transparent 24%),
       radial-gradient(circle at 84% 12%, rgba(130,95,55,.05), transparent 20%),
@@ -77,7 +93,6 @@
       radial-gradient(circle at 26% 90%, rgba(140,100,60,.04), transparent 24%),
       radial-gradient(ellipse at center, transparent 52%, rgba(80,60,35,.13)),
       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
-    background-attachment:fixed;
   }
   /* .wrap = a reusable centred column. margin:0 auto centres a fixed-width block. */
   .wrap{max-width:var(--measure); margin:0 auto}
@@ -119,11 +134,11 @@
   /* masthead (the big title block at the very top) */
   header.mast{ text-align:center; padding:5rem 0 1rem }
   .ornament{ width:120px; margin:0 auto 1.4rem; color:var(--ink); cursor:pointer }
-  /* clamp(min, preferred, max) = a font-size that scales with screen width but never
-     smaller than 2.4rem nor bigger than 3.6rem. Responsive sizing in one line.
-     text-transform:none = show the title in whatever case you actually type. */
+  /* clamp(min, preferred, max) = a font-size that scales with screen width (7.5vw) but never
+     below 1.5rem nor above 3.6rem. The low minimum matters: the title + its em-dashes must
+     fit a 320px phone on ONE line (a 2.4rem minimum used to clip it to "the troubled corr…"). */
   .mast h1{ font-family:"IM Fell DW Pica",serif; font-weight:400; color:var(--oxblood);
-    font-size:clamp(2.4rem,7vw,3.6rem); letter-spacing:.06em; margin:.2rem 0 .1rem; text-transform:none }
+    font-size:clamp(1.5rem,7.5vw,3.6rem); letter-spacing:.06em; margin:.2rem 0 .1rem; text-transform:none }
   .mast .tagline{ font-style:italic; color:var(--faded); margin:.2rem 0 1rem }
   /* the easter-egg line: hidden (display:none) until JS flips it on */
   .printmark{ display:none; font-style:italic; color:var(--faded); margin-top:1rem; font-size:.85em }
@@ -319,7 +334,10 @@
   /* @media = apply these rules ONLY when the screen is 600px wide or less (phones). */
   @media (max-width:600px){
     body{ font-size:17px; padding:0 16px }
-    header.mast{ padding:3rem 0 1rem }
+    /* the masthead was eating most of a phone's first screen — tighter breathing room
+       and a smaller device bring the newest entry above the fold */
+    header.mast{ padding:2.2rem 0 .6rem }
+    .ornament{ width:88px; margin-bottom:1rem }
     .toolbar .undo{ margin-left:0 }   /* on phones, let Undo wrap instead of stranding at the right */
     /* floated figures get cramped on a narrow screen — make them full-width instead. */
     .post .body figure.fig-left, .post .body figure.fig-right{ float:none; width:100%; margin:1rem 0 }
@@ -331,8 +349,15 @@
     /* the writing area + cheatsheet stack on phones */
     .editor-row{ flex-direction:column }
     .cheat{ position:static; flex-basis:auto; width:100% }
-    /* footer text a step smaller on phones */
-    .tp-title{ font-size:1.15rem } .tp-tag{ font-size:.9rem } .tp-links{ font-size:.95rem }
+    /* footer: hold the desktop sizes (it used to shrink here and read like fine print);
+       the roomy line-height keeps the link row tidy when it wraps to two lines */
+    footer{ font-size:.95em }
+    .tp-links{ line-height:2 }
+    /* the tailpiece engraving is a postage stamp at phone width — print it half again
+       as wide and let the empty right side of the field crop away. The margin-left pulls
+       it 12vw past the screen's left edge so the man and his tree keep their place while
+       the red sun still lands just inside the frame. */
+    .tailpiece{ width:135vw; margin:-32vw 0 0 calc(50% - 62vw) }
   }
 </style>
 </head>
