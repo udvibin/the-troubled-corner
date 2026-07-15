@@ -50,6 +50,12 @@
   :root{
     --paper:#f3efe3; --ink:#1f1b16; --oxblood:#7c1f1f; --faded:#6b6256;
     --hairline:rgba(26,26,26,.12); --measure:680px;   /* --measure = comfortable reading width */
+    /* VERTICAL RHYTHM — the spacing scale. Every block-level gap on the page picks from
+       these five steps (multiples of one .8rem "breath") instead of being eyeballed per
+       element. That's what makes the page read as one calm surface: no two gaps disagree
+       by a few stray pixels. Micro-gaps (under ~.5rem, e.g. a title hugging its date)
+       stay hand-tuned — a scale is a default, not a cage. */
+    --s1:.8rem; --s2:1.6rem; --s3:2.4rem; --s4:3.2rem; --s6:4.8rem;
   }
 
   /* The drop-cap font, self-hosted from the fonts/ folder. @font-face = "register this
@@ -73,7 +79,7 @@
      weight(400) size(19px)/line-height(1.62) family. */
   body{
     margin:0; color:var(--ink);
-    font:400 19px/1.64 "IM Fell DW Pica",Georgia,serif;
+    font:400 20px/1.64 "IM Fell DW Pica",Georgia,serif;
     -webkit-font-smoothing:antialiased; padding:0 22px;
     background-color:var(--paper);
   }
@@ -132,8 +138,8 @@
   .tip:hover::after{ display:block }
 
   /* masthead (the big title block at the very top) */
-  header.mast{ text-align:center; padding:5rem 0 1rem }
-  .ornament{ width:120px; margin:0 auto 1.4rem; color:var(--ink); cursor:pointer }
+  header.mast{ text-align:center; padding:var(--s6) 0 var(--s1) }
+  .ornament{ width:120px; margin:0 auto var(--s2); color:var(--ink); cursor:pointer }
   /* clamp(min, preferred, max) = a font-size that scales with screen width (7.5vw) but never
      below 1.5rem nor above 3.6rem. The low minimum matters: the title + its em-dashes must
      fit a 320px phone on ONE line (a 2.4rem minimum used to clip it to "the troubled corr…"). */
@@ -151,14 +157,14 @@
 
   /* ═══ THE STREAM ═══ the day-book: essays printed in full, small entries between them.
      Nothing sits between the masthead and the newest entry — you land in the book. */
-  h2.t{ text-align:center; font-weight:400; font-size:1.9rem; margin:3rem 0 .15rem }    /* essay title */
+  h2.t{ text-align:center; font-weight:400; font-size:1.9rem; margin:var(--s4) 0 .15rem }    /* essay title */
   /* the date line under a title. EVERY date on the page shares one voice: 16px (px, so no
      parent's em shrinks it), small caps, oxblood, upright — even inside italic song lines. */
-  .when{ text-align:center; font-variant:small-caps; letter-spacing:.2em; color:var(--oxblood); font-size:16px; margin:0 0 1.5rem }
+  .when{ text-align:center; font-variant:small-caps; letter-spacing:.2em; color:var(--oxblood); font-size:16px; margin:0 0 var(--s2) }
   .when .wsong{ font-variant:normal; letter-spacing:normal; font-style:italic; color:var(--faded) } /* the song half of a date line */
   .d{ font-variant:small-caps; font-style:normal; letter-spacing:.2em; color:var(--oxblood); font-size:16px; white-space:nowrap }
-  .small-entry{ text-align:center; color:var(--faded); font-style:italic; margin:1.5rem 0; font-size:.97em }
-  figure.plate{ margin:2.2rem auto; max-width:340px; text-align:center }   /* a small pasted photograph */
+  .small-entry{ text-align:center; color:var(--faded); font-style:italic; margin:var(--s2) 0; font-size:.97em }
+  figure.plate{ margin:var(--s3) auto; max-width:340px; text-align:center }   /* a small pasted photograph */
   figure.plate img{ width:100%; display:block; filter:sepia(.12) saturate(.9) }
   figure.plate figcaption{ font-style:italic; color:var(--faded); font-size:.85em; margin-top:.45rem }
 
@@ -176,16 +182,16 @@
   .lrow.open .full{ display:block; animation:foldin .45s ease }
   /* month heads, an ivy sprig either side (ivy size lives in the trinket panel) */
   .mo{ text-align:center; font-family:"IM Fell DW Pica SC",serif; color:var(--oxblood);
-    letter-spacing:.3em; font-size:1.3rem; margin:2.6rem 0 .8rem }
+    letter-spacing:.3em; font-size:1.3rem; margin:var(--s3) 0 var(--s1) }
   #archive{ display:none } #archive.awake{ display:block; animation:foldin .45s ease }
-  .wake{ text-align:center; font-style:italic; color:var(--faded); margin:2.4rem 0 0 }
+  .wake{ text-align:center; font-style:italic; color:var(--faded); margin:var(--s3) 0 0 }
   @keyframes foldin{ from{ opacity:0; transform:translateY(-8px) } to{ opacity:1; transform:none } }
   @media (prefers-reduced-motion:reduce){ #archive.awake, .lrow.open .full, .door-view.awake{ animation:none } }
 
   /* ═══ THE DOORS ═══ quiet italic lines at the foot. margin-top = the gap below the archive. */
-  .doors{ text-align:center; font-style:italic; color:var(--faded); margin:3.2rem 0 0; line-height:1.8 }
+  .doors{ text-align:center; font-style:italic; color:var(--faded); margin:var(--s4) 0 0; line-height:1.8 }
   /* what a door opens (the listening register, the colophon) sleeps like the archive does */
-  .door-view{ display:none; margin-top:2.2rem } .door-view.awake{ display:block; animation:foldin .45s ease }
+  .door-view{ display:none; margin-top:var(--s3) } .door-view.awake{ display:block; animation:foldin .45s ease }
 
   /* about / welcome block */
   .about{ border-left:2px solid var(--oxblood); padding-left:1.3rem }
@@ -210,14 +216,14 @@
   .post .cover{ width:100%; margin:.6rem 0 1rem; filter:saturate(.92) }
   /* blockquote: an oxblood side-rule + faded text (upright, not italic — that was disliked). */
   .post .body blockquote, #preview blockquote{ border-left:2px solid var(--oxblood);
-    margin:1.4rem 0; padding:.15rem 0 .15rem 1.2rem; color:var(--faded); font-style:normal }
+    margin:var(--s2) 0; padding:.15rem 0 .15rem 1.2rem; color:var(--faded); font-style:normal }
   /* in-post headings: one font (Fell roman), no small-caps, no italic. h2 oxblood, h3 a step down. */
   .post .body h2{ font-family:"IM Fell DW Pica",serif; font-weight:400; font-style:normal;
-    color:var(--oxblood); font-size:1.75rem; letter-spacing:.01em; margin:1.8rem 0 .4rem }
+    color:var(--oxblood); font-size:1.75rem; letter-spacing:.01em; margin:var(--s2) 0 .4rem }
   /* h3 dropped from the toolbar (too close to body text). If you still type ### it renders here as a
      clear subhead: oxblood + small-caps so it never reads as a regular paragraph. */
   .post .body h3{ font-family:"IM Fell DW Pica SC",serif; font-weight:400; font-style:normal;
-    color:var(--oxblood); font-size:1.2rem; letter-spacing:.06em; margin:1.6rem 0 .3rem }
+    color:var(--oxblood); font-size:1.2rem; letter-spacing:.06em; margin:var(--s2) 0 .3rem }
   /* inline figures: float an image to one side and let the text wrap around it (gwern-style).
      Put a <figure class="fig fig-left"> (or fig-right) before a paragraph; the text flows beside it. */
   .post .body figure.fig{ margin:.2rem 0 1rem }
@@ -227,8 +233,16 @@
   .post .body figure.fig-right{ float:right; width:44%; margin:.3rem 0 .8rem 1.5rem }
   .post .body::after{ content:""; display:block; clear:both }   /* contain the floats so the layout doesn't collapse */
 
+  /* ═══ PASS IT ON ═══ the quiet share line under an essay. Clicking "story" or "card"
+     draws the essay onto a canvas as a letterpress picture-card (Instagram-story portrait
+     or Twitter landscape), copies the essay's deep link, and hands the image to the
+     phone's share sheet (or downloads it on a desktop). Styled like the doors: italic,
+     faded, no ceremony. */
+  .shareline{ text-align:center; font-style:italic; color:var(--faded); font-size:.88em; margin:var(--s2) 0 0 }
+  .shareline a{ cursor:pointer }
+
   /* footer */
-  footer{ text-align:center; padding:3rem 0 0; color:var(--faded); font-size:.9em }
+  footer{ text-align:center; padding:var(--s4) 0 0; color:var(--faded); font-size:.9em }
   footer .colophon{ font-style:italic; margin:.6rem 0 }
 
   /* THE TAILPIECE — the closing engraving at the very end of the "book" (old presses called
@@ -251,7 +265,7 @@
             mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.14) 32%,#000 62%) }
   /* The footer text stays on paper, and the ghost of the sky condenses beneath it —
      relative + z-index keep the words crisp above the plate rising behind them. */
-  .tp-text{ position:relative; z-index:1; text-align:center; margin:0 0 1.8rem }
+  .tp-text{ position:relative; z-index:1; text-align:center; margin:0 0 var(--s2) }
   .tp-title{ font-size:1.35rem; letter-spacing:.06em; color:var(--ink) }
   /* the two quiet lines around the links: same .15em breath above and below the tag line */
   .tp-tag{ font-style:italic; color:var(--faded); margin:.15em 0 }
@@ -333,11 +347,11 @@
 
   /* @media = apply these rules ONLY when the screen is 600px wide or less (phones). */
   @media (max-width:600px){
-    body{ font-size:17px; padding:0 16px }
+    body{ font-size:18px; padding:0 16px }
     /* the masthead was eating most of a phone's first screen — tighter breathing room
        and a smaller device bring the newest entry above the fold */
-    header.mast{ padding:2.2rem 0 .6rem }
-    .ornament{ width:88px; margin-bottom:1rem }
+    header.mast{ padding:var(--s3) 0 var(--s1) }
+    .ornament{ width:88px; margin-bottom:var(--s1) }
     .toolbar .undo{ margin-left:0 }   /* on phones, let Undo wrap instead of stranding at the right */
     /* floated figures get cramped on a narrow screen — make them full-width instead. */
     .post .body figure.fig-left, .post .body figure.fig-right{ float:none; width:100%; margin:1rem 0 }
@@ -496,8 +510,8 @@ const CONFIG = {
     <path d="M97 38 C105 31 93 26 101 18 C107 12 102 8 108 3" opacity=".55"/>
   </svg>
   <h1>— the troubled corner —</h1>
-  <!-- tagline: a PLACEHOLDER — the real line is still being pondered (spec.md open decision) -->
-  <p class="tagline">writing, mostly</p>
+  <!-- the tagline: what this place is for — keeping thoughts and found things before they're lost -->
+  <p class="tagline">thoughts, musings, found things — kept in one place</p>
   <p class="printmark" id="printmark">✦ set by hand, pressed once, kept forever ✦</p>
 </header>
 
@@ -772,6 +786,9 @@ const stamp=(id,cls)=>`<svg class="orn ${cls}"><use href="#${id}"/></svg>`;
 const MARK={ song:`<span class="tip" role="img" aria-label="played">${stamp('o-syrinx','orn-sm')}</span>`,
              inspiration:`<span class="tip" role="img" aria-label="inspiration">${stamp('o-snail','orn-snail')}</span>` };
 const FIN=stamp('o-seed','fin'), DIVIDER=`<div class="divider">${stamp('o-fleuron','orn-div')}</div>`;
+// the quiet share line under an essay — "story" (Instagram portrait) or "card" (Twitter landscape)
+const shareLine = slug => `<div class="shareline">pass it on — `+
+  `<a data-share="story" data-slug="${slug}">story</a> · <a data-share="card" data-slug="${slug}">card</a></div>`;
 
 // The end-mark IS the essay's final full stop: strip the trailing period off the last
 // paragraph and press the seed-pod in its place.
@@ -802,7 +819,7 @@ function entryHTML(e){
           return `${s.artist?s.artist+' – ':''}${link}`;
         }).join(' · ')}</span>` : '';
     return `<article class="post" id="post-${e.slug}"><h2 class="t">${e.title}</h2>`+
-      `<div class="when">${fmtFull(e.date)}${songs}</div><div class="body">${essayBody(e)}</div></article>`;
+      `<div class="when">${fmtFull(e.date)}${songs}</div><div class="body">${essayBody(e)}</div>${shareLine(e.slug)}</article>`;
   }
   if(e.type==='picture')
     return `<figure class="plate"><img src="${e.src}" alt="">`+
@@ -866,6 +883,117 @@ function renderListening(){
 }
 
 
+/* ---------- share cards: an essay pressed onto a picture ----------
+   The "pass it on" line under each essay. Clicking "story" (1080×1920, Instagram) or
+   "card" (1600×900, Twitter) paints the essay's opening onto a <canvas> — paper,
+   vignette, foxing, title, drop cap, first sentences, and the site's address — then:
+     1. copies the essay's deep link (#post-slug) to the clipboard, and
+     2. hands the PNG to the phone's share sheet (navigator.share) — or, on a desktop
+        with no share sheet, downloads it.
+   Instagram can't be given a link programmatically; the flow is: share/save the card,
+   post it, paste the copied link into the story's link sticker. On Twitter, attach the
+   card and paste the link as the tweet text. No library, no server — the same browser
+   that renders the page renders the card. */
+const SITE_URL='https://udvibin.github.io/the-troubled-corner/';
+
+// the essay's opening as plain words: render the Markdown, then keep only the text
+function essayPlain(e){ const d=el('div',null,mdToHtml(e.body)); return d.textContent.replace(/\s+/g,' ').trim(); }
+
+// break text into lines that fit `width`; the first `indented` lines are narrower by
+// `indent` (the notch the drop cap sits in). At most maxLines — ends with " …" if cut.
+function wrapLines(ctx,text,width,indent,indented,maxLines){
+  const words=text.split(' '), lines=[]; let line='';
+  for(const wd of words){
+    const max=width-(lines.length<indented?indent:0);
+    const t=line?line+' '+wd:wd;
+    if(line && ctx.measureText(t).width>max){ lines.push(line); line=wd } else line=t;
+    if(lines.length>maxLines) break;                       // we have enough — stop measuring
+  }
+  if(line) lines.push(line);
+  if(lines.length>maxLines){ lines.length=maxLines;
+    lines[maxLines-1]=lines[maxLines-1].replace(/[,.;:\s]*$/,'')+' …'; }
+  return lines;
+}
+
+// paint one card and hand back the canvas
+async function drawCard(e,fmt){
+  // a canvas can only set type in faces that are ALREADY loaded — ask for each first
+  await Promise.all(['80px "IM Fell DW Pica"','italic 80px "IM Fell DW Pica"','80px Royal']
+    .map(f=>document.fonts.load(f)));
+  const story=fmt==='story';
+  const W=story?1080:1600, H=story?1920:900, mx=story?110:150;    // page size + side margin
+  const c=Object.assign(el('canvas'),{width:W,height:H}), ctx=c.getContext('2d');
+
+  // the paper: flat ivory, the aged-edge vignette, three faint foxing stains — the same
+  // patina the site wears, drawn fresh at card size
+  ctx.fillStyle='#f3efe3'; ctx.fillRect(0,0,W,H);
+  const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.72);
+  vg.addColorStop(0,'rgba(80,60,35,0)'); vg.addColorStop(1,'rgba(80,60,35,.15)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  [[.2,.16],[.84,.3],[.32,.86]].forEach(([x,y])=>{
+    const g=ctx.createRadialGradient(W*x,H*y,0,W*x,H*y,W*.2);
+    g.addColorStop(0,'rgba(140,100,60,.05)'); g.addColorStop(1,'rgba(140,100,60,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H); });
+
+  const inner=W-2*mx, rule=(y,w=280)=>{ ctx.fillStyle='rgba(26,26,26,.25)'; ctx.fillRect(W/2-w/2,y,w,2) };
+  let y=story?300:150; ctx.textAlign='center';
+
+  // the date — small caps by hand (canvas has no font-variant): uppercase + tracking
+  ctx.fillStyle='#7c1f1f'; ctx.font=(story?28:26)+'px "IM Fell DW Pica"';
+  try{ ctx.letterSpacing='8px' }catch(_){}
+  ctx.fillText(fmtFull(e.date).toUpperCase(), W/2, y);
+  try{ ctx.letterSpacing='0px' }catch(_){}
+
+  // the title, wrapped if it must be
+  ctx.font=(story?64:56)+'px "IM Fell DW Pica"';
+  y+=story?92:72;
+  for(const l of wrapLines(ctx,e.title,inner,0,0,3)){ ctx.fillText(l,W/2,y); y+=story?78:66 }
+  y-=story?78:66;                                          // back to the last line's baseline
+  rule(y+(story?44:32));
+
+  // the opening, the drop cap set three lines deep into it
+  const lh=story?62:56, bodyPx=story?38:34;
+  let b=y+(story?140:108);                                 // first body baseline
+  const text=essayPlain(e), cap=text[0]||'', rest=text.slice(1).trim();
+  ctx.textAlign='left';
+  ctx.font=(lh*3)+'px Royal'; const capW=ctx.measureText(cap).width+26;
+  ctx.fillStyle='#7c1f1f'; ctx.fillText(cap, mx, b+2*lh);  // cap baseline = 3rd line's
+  const footTop=H-(story?330:170);                         // where the foot begins
+  const maxLines=Math.floor((footTop-b-lh)/lh);            // as many lines as fit above it
+  ctx.font=bodyPx+'px "IM Fell DW Pica"'; ctx.fillStyle='#1f1b16';
+  wrapLines(ctx,rest,inner,capW,3,maxLines)
+    .forEach((l,i)=>ctx.fillText(l, mx+(i<3?capW:0), b+i*lh));
+
+  // the foot: a rule, then where the rest of the piece lives
+  let fy=footTop; ctx.textAlign='center'; rule(fy);
+  ctx.fillStyle='#6b6256'; ctx.font='italic '+(story?32:28)+'px "IM Fell DW Pica"';
+  ctx.fillText('the rest is kept at', W/2, fy+=(story?78:56));
+  ctx.fillStyle='#7c1f1f'; ctx.font=(story?36:32)+'px "IM Fell DW Pica"';
+  ctx.fillText(SITE_URL.replace('https://','').replace(/\/$/,''), W/2, fy+=(story?58:48));
+  ctx.fillStyle='#1f1b16'; ctx.font=(story?30:26)+'px "IM Fell DW Pica"';
+  ctx.fillText('— the troubled corner —', W/2, fy+=(story?70:52));
+  return c;
+}
+
+// build → copy the deep link → hand the card to the share sheet (or download it)
+async function shareCard(slug,fmt,from){
+  const e=ENTRIES.find(x=>x.type==='essay'&&x.slug===slug); if(!e) return;
+  const line=from.closest('.shareline'), old=line.innerHTML;
+  const c=await drawCard(e,fmt), url=`${SITE_URL}#post-${e.slug}`;
+  try{ await navigator.clipboard.writeText(url) }catch(_){}
+  c.toBlob(async blob=>{
+    const file=new File([blob],`${e.slug}-${fmt}.png`,{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:e.title, text:url}) }catch(_){} // user closing the sheet is fine
+    }else{
+      const a=el('a'); a.href=URL.createObjectURL(blob); a.download=file.name;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    }
+    line.innerHTML='<span>the card is yours — its link is on your clipboard, paste it where the card goes</span>';
+    setTimeout(()=>line.innerHTML=old, 4500);
+  },'image/png');
+}
+
 /* ---------- a tiny Markdown → HTML renderer (no library) ----------
    You write plain, readable text; this turns it into the post HTML — and the editor's live
    preview uses the SAME function, so preview === published. Supported, by design a small set:
@@ -911,7 +1039,7 @@ function unfoldRow(row){
   const full=row.querySelector('.full');
   if(full && !full.dataset.filled){
     const e=ENTRIES.find(x=>x.slug===row.dataset.slug);
-    if(e) full.innerHTML=`<div class="post"><div class="body">${essayBody(e)}</div></div>`;
+    if(e) full.innerHTML=`<div class="post"><div class="body">${essayBody(e)}</div>${shareLine(e.slug)}</div>`;
     full.dataset.filled='1';
   }
   row.classList.add('open');
@@ -931,6 +1059,8 @@ document.addEventListener('click', e=>{
     v.classList.toggle('awake');                                     // click again to close it
     if(v.classList.contains('awake')) v.scrollIntoView({behavior:'smooth', block:'nearest'});
     return; }
+  const sh=e.target.closest('[data-share]');                         // a "pass it on" link?
+  if(sh){ e.preventDefault(); shareCard(sh.dataset.slug, sh.dataset.share, sh); return; }
   const lt=e.target.closest('.lrow .lt');                            // an archive essay title?
   if(lt){ const row=lt.closest('.lrow');
     if(row.classList.contains('open')) row.classList.remove('open'); else unfoldRow(row); }

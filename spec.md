@@ -194,7 +194,21 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    `Selected Ornaments - Final.html` kept in the working tree for now (Uday's call —
    they're untracked, so deleting would be unrecoverable).
 
-### Landed 2026-07-15 — mobile polish + link-sharing basics ✅
+### Landed 2026-07-15 (second pass) — type, rhythm, tagline, share cards ✅
+- **Body type up a point**: 20px desktop / 18px phones (was 19/17) — easier reading.
+- **Vertical rhythm**: a five-step spacing scale in `:root` (`--s1:.8rem` … `--s6:4.8rem`);
+  every block gap ≥1rem snapped to it (micro-gaps stay hand-tuned). Mobile mostly
+  inherits the same steps instead of one-off overrides.
+- **Tagline chosen**: *"thoughts, musings, found things — kept in one place"* (no
+  press-pun by request — the press is the look, not the words).
+- **SHARE CARDS** — the "pass it on" line under every essay (stream + unfolded archive
+  rows): *story* (1080×1920, Instagram) or *card* (1600×900, Twitter/X). Draws the
+  essay onto a `<canvas>` — paper + vignette + foxing, small-caps date, title, Royal
+  drop cap, the opening sentences ("…"-cut to fit), and the site's address at the
+  foot — copies the `#post-slug` deep link to the clipboard, then `navigator.share`
+  (phone share sheet) or a straight PNG download (desktop). Instagram can't take a
+  link programmatically: post the card, paste the copied link into the story's link
+  sticker. Zero libraries; the fonts already on the page set the type.
 - **Masthead fits phones**: title `clamp()` minimum lowered (2.4rem → 1.5rem, 7.5vw
   preferred) so "— the troubled corner —" sits on one line down to 320px; ornament
   88px and tighter padding on mobile — the newest entry now lands above the fold.
@@ -240,8 +254,8 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    (snail done in-code 2026-07-04 as a concentric spiral); unpressed: plate frame,
    smoke curl. **Masthead device**: Uday isn't sold on the hat — press candidates in
    Claude Design like the other trinkets, swap in a winner.
-6. **Tagline** — placeholder "writing, mostly"; needs a brainstorm (Uday said all
-   current candidates are bad).
+6. ~~Tagline~~ ✅ done 2026-07-15 — "thoughts, musings, found things — kept in one
+   place" (Uday's brief: what the site keeps, not a press pun).
 7. **dropcat** — parked in `dropcat.md`.
 
 **Reference (liked):** [rotational.co.uk](https://rotational.co.uk/) — calm single-column serif blog; slim horizontal nav; newest-first stream; hairline separators; writing carries it. Other touchstones: fromjason.xyz, near.blog, sive.rs, stephango.com, wiki.xxiivv.com.
@@ -253,7 +267,7 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
 - **Contents / legend:** ✅ resolved — slim horizontal nav.
 - **Editor model:** ✅ resolved — Markdown.
 - **Day-book name:** ✅ resolved — the day-book (the page itself wears no section name; see the 2026-07-04 design doc).
-- **Tagline:** still open — "writing, mostly" is a placeholder; Uday to decide.
+- **Tagline:** ✅ resolved 2026-07-15 — "thoughts, musings, found things — kept in one place".
 
 ## Conventions
 Single file, zero deps, comment heavily for learning (lean code, rich comments). Post bodies are **Markdown**. See `CLAUDE.md`.
