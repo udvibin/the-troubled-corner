@@ -26,9 +26,9 @@
 <!-- The text in the browser TAB. -->
 <title>— the troubled corner —</title>
 <!-- what search engines and link previews say about the page (WhatsApp/iMessage etc. read the og: pair). -->
-<meta name="description" content="a small, quiet corner of the web — essays, songs, and found things, set like a page from an old book.">
+<meta name="description" content="a small quiet corner of the web. essays, songs, and found things, kept in one place.">
 <meta property="og:title" content="— the troubled corner —">
-<meta property="og:description" content="a small, quiet corner of the web — essays, songs, and found things.">
+<meta property="og:description" content="a small quiet corner of the web. essays, songs, and found things.">
 <!-- a dedicated 1200×630 crop of the tailpiece: link-preview scrapers skip heavy images
      and crop 2:1 originals badly, so the og image is its own light, pre-cropped file -->
 <meta property="og:image" content="https://udvibin.github.io/the-troubled-corner/images/og.jpg">
@@ -521,7 +521,7 @@ const CONFIG = {
   </svg>
   <h1>— the troubled corner —</h1>
   <!-- the tagline: what this place is for — keeping thoughts and found things before they're lost -->
-  <p class="tagline">thoughts, musings, found things — kept in one place</p>
+  <p class="tagline">thoughts, musings, found things, kept in one place</p>
   <p class="printmark" id="printmark">✦ set by hand, pressed once, kept forever ✦</p>
 </header>
 
@@ -551,64 +551,62 @@ const CONFIG = {
 
   <!-- the colophon — static prose (absorbs the old Welcome), opened by its door -->
   <div id="colophon" class="door-view">
-  <p class="about dropcap">Welcome, whoever you are. This is a small, quiet corner of the web I keep for
-    myself — somewhere to think out loud, set a little type, and figure out my own style without anyone
-    watching. Make yourself comfortable. There's tea, metaphorically.</p>
-  <p>A colophon is the note at the back of an old book that tells you how it was made —
-    the type, the press, the hands involved. Here is this one's.</p>
+  <p class="about dropcap">Welcome, whoever you are. This is a small quiet corner of the web I keep for
+    myself, somewhere to think out loud and figure out my own style without anyone watching. Make
+    yourself comfortable.</p>
+  <p>A colophon is the note at the back of an old book that tells you how it was made. This is this
+    site's.</p>
 
   <h3>The look</h3>
-  <p>This page is dressed like an <em>antique letterpress book</em>: warm ivory paper in place of glaring white,
-    ink-black text, a single oxblood accent, and serif type with the ink-spread of old metal. Drop caps open the
-    longer pieces, a pressed fleuron divides the days, and a small fern points the way onward. Nothing glows,
-    nothing blinks, nothing competes for your eye — it is meant to feel <em>found</em>, like a quiet book pulled
-    off a shelf. The aim is calm, neutral, and welcoming: a place to read slowly, not a thing to be optimised.</p>
+  <p>The page is styled like an old letterpress book: warm ivory paper instead of white, ink-black text,
+    one oxblood accent, and a serif with the ink-spread of old metal type. Drop caps open the longer
+    pieces, a fleuron divides the days, a small fern points the way. Nothing glows and nothing blinks.
+    The idea is a place to read slowly, not a thing to be optimised.</p>
 
   <h3>Typefaces</h3>
-  <p>Set throughout in <em>IM Fell DW Pica</em> — Igino Marini's digitisation of a 17th-century Fell type,
-    ink-spread and all — doing every job here: title, headings, and reading text. Served from Google Fonts.
-    The drop caps come from two old public-domain initial sets, <em>Royal Initialen</em> and <em>Yinit</em>,
-    hosted in the repository itself.</p>
+  <p>Everything is set in <em>IM Fell DW Pica</em>, Igino Marini's digitisation of a 17th-century Fell
+    type, ink-spread and all. It does every job here: title, headings, reading text. Served from Google
+    Fonts. The drop caps come from two old public-domain initial sets, <em>Royal Initialen</em> and
+    <em>Yinit</em>, hosted in the repository itself.</p>
 
   <h3>How it's built</h3>
-  <p>One hand-written <code>index.html</code>. No framework, no build step, no bundler, no dependencies —
-    all the CSS and JavaScript live in the page itself. The whole site is a single file you could read top to bottom.</p>
+  <p>One hand-written <code>index.html</code>. No framework, no build step, no dependencies. All the CSS
+    and JavaScript live in the page itself, so the whole site is a single file you could read top to
+    bottom.</p>
 
   <h3>Where it lives</h3>
-  <p>Hosted on GitHub Pages. A <code>git push</code> publishes it; there is no server to keep running.</p>
+  <p>Hosted on GitHub Pages. A <code>git push</code> publishes it, there is no server to keep running.</p>
 
   <h3>How it's written</h3>
-  <p>New posts are written from a hidden editor inside the site, which commits the change straight to the
-    repository through the GitHub API. The token that allows this is encrypted in the browser with the Web Crypto
-    API and unlocked by a passphrase — no secrets sit in the open, and there is no backend.</p>
+  <p>New posts are written from a hidden editor inside the site, which commits the change straight to
+    the repository through the GitHub API. The token that allows this is encrypted in the browser and
+    unlocked by a passphrase. No secrets sit in the open and there is no backend.</p>
 
   <h3>Ornaments</h3>
-  <p>The little marks — the seed-pod that ends each essay, the fleuron between the days, the fern that
-    points the way, the ivy around a month, the pipes before a song, the spiral before a found thing — are
-    this site's own set of printer's ornaments, pressed one at a time for it and used nowhere else. Drop
-    caps are an older printer's convention, borrowed with thanks.</p>
+  <p>The little marks (the seed-pod that ends an essay, the fleuron between the days, the fern that
+    points the way, the ivy around a month, the pipes before a song, the spiral before a found thing)
+    are this site's own set of ornaments, made for it and used nowhere else. Drop caps are an older
+    printer's convention, borrowed with thanks.</p>
 
   <h3>The sounds</h3>
-  <p>Some things here make a small noise — the archive slides open like paper, the desk's keys tick, a
-    shared card lands with the thump of a platen. None of it is a recording: each sound is synthesized in
-    your browser the moment you cause it, the same way the rest of the page is drawn. The idea of tiny,
-    live-made interface cues is borrowed from <a href="https://cuelume-site.pages.dev/">Cuelume</a>; the
-    sounds themselves were pressed for this site, like the trinkets. If you'd rather read in silence,
-    there's a switch at the foot of the page.</p>
+  <p>Some things on this page make small sounds. The archive sounds like paper, the desk keys tick,
+    sharing a card sounds like a press. None of them are recordings. They're generated in your browser
+    the moment you click, the same way the rest of the page is drawn. The idea came from
+    <a href="https://cuelume-site.pages.dev/">Cuelume</a>. If you'd rather have it silent, there's a
+    switch at the bottom of the page.</p>
 
-  <h3>Debts, gladly owed</h3>
-  <p>This whole place exists because <a href="https://www.fromjason.xyz/">From Jason</a> exists. One visit
-    there and I wanted a corner of my own — the warmth, the paper, the sense that a personal site can be a
-    room you keep rather than a feed you fill. If you like it here, you'll like it there more.</p>
-  <p>Other debts, gladly owed: <a href="https://near.blog/">near.blog</a>, for proving how little a site
-    actually needs; <a href="https://rotational.co.uk/">rotational</a>, whose calm dated stream this
-    day-book leans on; <a href="https://gwern.net/">gwern</a>, from whom the drop caps are borrowed taste
-    (and deliberately none of the machinery); <a href="https://cuelume-site.pages.dev/">Cuelume</a>, for
-    the thought that a page may speak in small sounds; Igino Marini, for the Fell types; the old hands
-    behind <em>Royal Initialen</em> and <em>Yinit</em>; <a href="https://www.admonymous.co/">Admonymous</a>,
-    which carries the anonymous letters; and GitHub Pages, which holds the roof up for free. The closing
-    engraving — the fellow resting under his oak — was argued out of a machine, then sunk into this paper
-    by hand.</p>
+  <h3>Credits</h3>
+  <p>The inspiration for this whole site came from <a href="https://www.fromjason.xyz/">From Jason</a>.
+    I found it one day and wanted a corner of my own. If you like it here, you'll probably like it
+    there too.</p>
+  <p>The rest of the credits: <a href="https://near.blog/">near.blog</a> for showing how simple a site
+    can be. <a href="https://rotational.co.uk/">rotational</a> for the calm dated stream this page is
+    built like. <a href="https://gwern.net/">gwern</a> for the drop caps idea.
+    <a href="https://cuelume-site.pages.dev/">Cuelume</a> for the sounds idea. Igino Marini for the
+    Fell types. The <em>Royal Initialen</em> and <em>Yinit</em> sets for the drop caps themselves.
+    <a href="https://www.admonymous.co/">Admonymous</a> for handling the anonymous messages. GitHub
+    Pages for the free hosting. The engraving at the bottom was AI-generated, then tuned by hand to
+    sit into the page.</p>
 
   <p style="margin-top:2rem"><a href="#" data-home>back to the top <svg class="orn orn-fern up"><use href="#o-fern"/></svg></a></p>
   </div>
@@ -1048,7 +1046,7 @@ async function shareCard(slug,fmt,from){
       const a=el('a'); a.href=URL.createObjectURL(blob); a.download=file.name;
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
     }
-    line.innerHTML='<span>the card is yours — its link is on your clipboard, paste it where the card goes</span>';
+    line.innerHTML='<span>card ready. its link is copied, paste it wherever you post</span>';
     setTimeout(()=>line.innerHTML=old, 4500);
   },'image/jpeg',.92);
 }
