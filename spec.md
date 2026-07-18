@@ -194,6 +194,21 @@ If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on 
    `Selected Ornaments - Final.html` kept in the working tree for now (Uday's call —
    they're untracked, so deleting would be unrecoverable).
 
+### Landed 2026-07-18 — the sounds + full colophon credits ✅
+- **Four interaction sounds**, synthesized live with the Web Audio API in ~45 in-file
+  lines — no recordings, no files, no library (idea credited to Cuelume,
+  cuelume-site.pages.dev; their npm package would break the no-libraries rule, so the
+  sounds are hand-pressed like the trinkets). The cue sheet: **paper** (archive wake,
+  ledger essay unfold, doors opening), **press** (share-card press, Publish success —
+  a platen thump), **tick** (the desk's toolbar keys), **chime** (the masthead
+  easter egg). All fire only inside clicks (autoplay-safe); volumes deliberately shy.
+- **Footer "sound: on/off" switch**, preference in localStorage.
+- **Colophon rewritten with full credits** ("Debts, gladly owed"): From Jason first
+  (the whole inspiration), near.blog, rotational, gwern, Cuelume, Igino Marini's Fell
+  types, Royal Initialen + Yinit, Admonymous, GitHub Pages, and an honest line about
+  the machine-argued tailpiece. New "The sounds" section; typefaces paragraph fixed
+  (small-caps-for-headings claim was stale; Yinit now mentioned).
+
 ### Landed 2026-07-15 (third pass) — code-review fixes ✅
 Multi-angle review of the day's diff; all confirmed findings fixed: the desk's live
 preview no longer shows the share line (it would have shared the PUBLISHED essay, not

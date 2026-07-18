@@ -277,6 +277,9 @@
   .tp-links a{ margin:0 .35em }
   /* "more of me" sits on its own quiet line above the link row, fern pointing onward */
   .tp-more{ font-style:italic; color:var(--faded); margin:.15em 0 }
+  /* the sound switch under the links: quiet by default, oxblood when looked at */
+  .tp-snd{ font-style:italic; font-size:.85em; margin-top:.3em }
+  .tp-snd a{ color:var(--faded) } .tp-snd a:hover{ color:var(--oxblood) }
 
   /* back-to-top button. position:fixed = stays pinned to the screen corner while you scroll
      (vs the page). It starts invisible (opacity:0); JS adds .show past 600px of scroll. */
@@ -562,9 +565,10 @@ const CONFIG = {
     off a shelf. The aim is calm, neutral, and welcoming: a place to read slowly, not a thing to be optimised.</p>
 
   <h3>Typefaces</h3>
-  <p>Set throughout in <em>IM Fell DW Pica</em> — a digitisation of a 17th-century letterpress face, ink-spread
-    and all — doing every job here: title, headings (in its small-caps cut), and reading text. Served from Google
-    Fonts. The drop caps are <em>Royal Initialen</em>, an ornate old initials face hosted in the repository itself.</p>
+  <p>Set throughout in <em>IM Fell DW Pica</em> — Igino Marini's digitisation of a 17th-century Fell type,
+    ink-spread and all — doing every job here: title, headings, and reading text. Served from Google Fonts.
+    The drop caps come from two old public-domain initial sets, <em>Royal Initialen</em> and <em>Yinit</em>,
+    hosted in the repository itself.</p>
 
   <h3>How it's built</h3>
   <p>One hand-written <code>index.html</code>. No framework, no build step, no bundler, no dependencies —
@@ -584,10 +588,27 @@ const CONFIG = {
     this site's own set of printer's ornaments, pressed one at a time for it and used nowhere else. Drop
     caps are an older printer's convention, borrowed with thanks.</p>
 
-  <h3>In the spirit of</h3>
-  <p>The small, weird, hand-made web — and in particular
-    <a href="https://www.fromjason.xyz/">From Jason</a> and <a href="https://near.blog/">near.blog</a>,
-    which showed that a personal site can just be calm and yours.</p>
+  <h3>The sounds</h3>
+  <p>Some things here make a small noise — the archive slides open like paper, the desk's keys tick, a
+    shared card lands with the thump of a platen. None of it is a recording: each sound is synthesized in
+    your browser the moment you cause it, the same way the rest of the page is drawn. The idea of tiny,
+    live-made interface cues is borrowed from <a href="https://cuelume-site.pages.dev/">Cuelume</a>; the
+    sounds themselves were pressed for this site, like the trinkets. If you'd rather read in silence,
+    there's a switch at the foot of the page.</p>
+
+  <h3>Debts, gladly owed</h3>
+  <p>This whole place exists because <a href="https://www.fromjason.xyz/">From Jason</a> exists. One visit
+    there and I wanted a corner of my own — the warmth, the paper, the sense that a personal site can be a
+    room you keep rather than a feed you fill. If you like it here, you'll like it there more.</p>
+  <p>Other debts, gladly owed: <a href="https://near.blog/">near.blog</a>, for proving how little a site
+    actually needs; <a href="https://rotational.co.uk/">rotational</a>, whose calm dated stream this
+    day-book leans on; <a href="https://gwern.net/">gwern</a>, from whom the drop caps are borrowed taste
+    (and deliberately none of the machinery); <a href="https://cuelume-site.pages.dev/">Cuelume</a>, for
+    the thought that a page may speak in small sounds; Igino Marini, for the Fell types; the old hands
+    behind <em>Royal Initialen</em> and <em>Yinit</em>; <a href="https://www.admonymous.co/">Admonymous</a>,
+    which carries the anonymous letters; and GitHub Pages, which holds the roof up for free. The closing
+    engraving — the fellow resting under his oak — was argued out of a machine, then sunk into this paper
+    by hand.</p>
 
   <p style="margin-top:2rem"><a href="#" data-home>back to the top <svg class="orn orn-fern up"><use href="#o-fern"/></svg></a></p>
   </div>
@@ -609,6 +630,9 @@ const CONFIG = {
       <a href="https://open.spotify.com/user/leggob0is" target="_blank" rel="noopener">spotify</a> ·
       <a href="https://letterboxd.com/moviesoverlove/" target="_blank" rel="noopener">letterboxd</a>
     </nav>
+    <!-- the sound switch: the page's little noises, on or off. JS writes the label and
+         the browser remembers the choice (localStorage). -->
+    <div class="tp-snd"><a href="#" id="snd"></a></div>
   </div>
   <!-- THE TAILPIECE. The full closing engraving (images/tailpiece.jpg), risen behind the
        end of the page — the "sinking page" blend. -->
@@ -1012,7 +1036,7 @@ async function shareCard(slug,fmt,from){
   const e=ENTRIES.find(x=>x.type==='essay'&&x.slug===slug); if(!e) return;
   const line=from.closest('.shareline'), old=line.innerHTML;
   // instant feedback — and because this removes the links, a double-tap can't fire twice
-  line.innerHTML='<span>pressing the card…</span>';
+  line.innerHTML='<span>pressing the card…</span>'; cue('press');
   const c=await drawCard(e,fmt), url=`${SITE_URL}#post-${e.slug}`;
   try{ await navigator.clipboard.writeText(url) }catch(_){}
   // JPEG, not PNG: the paper texture compresses far smaller and encodes faster
@@ -1064,6 +1088,47 @@ function mdBlock(b){
 }
 function mdToHtml(md){ return (md||'').replace(/\r/g,'').split(/\n{2,}/).map(mdBlock).filter(Boolean).join('\n'); }
 
+/* ---------- the sounds ----------
+   Four tiny interaction sounds, synthesized live with the browser's own Web Audio API —
+   no recordings, no files, no library. (The idea of live-synthesized interface cues is
+   borrowed with admiration from Cuelume, cuelume-site.pages.dev; the sounds themselves
+   are pressed here, one-of-one, like the trinkets.) Every sound fires only inside a
+   click, which is why browsers allow them at all; the footer's small "sound" switch
+   turns them off, and the browser remembers (localStorage). */
+let _ac=null;
+const soundOn=()=>localStorage.getItem('sound')!=='off';
+const ac=()=>_ac||(_ac=new (window.AudioContext||window.webkitAudioContext)());
+// one enveloped oscillator: frequency f (optionally sliding to f2), length dur, loudness g.
+// The gain ramps in over 5ms and decays away exponentially — that envelope is what makes
+// it a soft "note" instead of a raw beep.
+function toneAt(o){ const a=ac(), t=a.currentTime+(o.at||0);
+  const osc=a.createOscillator(), gn=a.createGain();
+  osc.type=o.type||'sine'; osc.frequency.setValueAtTime(o.f,t);
+  if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.dur);
+  gn.gain.setValueAtTime(.0001,t);
+  gn.gain.exponentialRampToValueAtTime(o.g||.05,t+.005);
+  gn.gain.exponentialRampToValueAtTime(.0001,t+o.dur);
+  osc.connect(gn).connect(a.destination); osc.start(t); osc.stop(t+o.dur+.02); }
+// a dying puff of filtered noise: the paper sounds. A filter shapes which part of the
+// hiss you hear; sweeping its frequency (f → f2) is what reads as a page sliding.
+function noiseAt(o){ const a=ac(), t=a.currentTime;
+  const len=Math.ceil(a.sampleRate*o.dur), buf=a.createBuffer(1,len,a.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+  const src=a.createBufferSource(); src.buffer=buf;
+  const fl=a.createBiquadFilter(); fl.type=o.ftype||'bandpass'; fl.frequency.setValueAtTime(o.f,t); fl.Q.value=o.q||1;
+  if(o.f2) fl.frequency.exponentialRampToValueAtTime(o.f2,t+o.dur);
+  const gn=a.createGain(); gn.gain.value=o.g||.06;
+  src.connect(fl).connect(gn).connect(a.destination); src.start(t); }
+// the cue sheet — what noise each thing makes. Volumes are deliberately shy.
+const CUE={
+  paper: ()=>{ noiseAt({dur:.18,f:900,f2:2600,q:.8,g:.10}) },                 // a page slid aside
+  press: ()=>{ noiseAt({dur:.06,f:220,ftype:'lowpass',g:.22});               // the platen coming down
+               toneAt({f:120,f2:55,dur:.12,g:.12}) },
+  tick:  ()=>{ noiseAt({dur:.02,f:3000,q:2,g:.05}) },                        // a key of the desk
+  chime: ()=>{ toneAt({f:1244.5,dur:.5,g:.035}); toneAt({f:1866,dur:.6,g:.02,at:.02}) } // the printer's mark
+};
+function cue(n){ if(!soundOn()) return; try{ CUE[n]&&CUE[n]() }catch(_){} }  // a sound must never break the page
+
 function renderAll(){ renderStream(); renderArchive(); renderListening(); }
 renderAll(); // do it once on load
 
@@ -1080,7 +1145,7 @@ function unfoldRow(row){
   row.classList.add('open');
 }
 function wakeArchive(){ $('#archive').classList.add('awake'); $('#wakeline').style.display='none'; }
-$('#wake').addEventListener('click', e=>{ e.preventDefault(); wakeArchive();
+$('#wake').addEventListener('click', e=>{ e.preventDefault(); wakeArchive(); cue('paper');
   $('#archive').scrollIntoView({behavior:'smooth'}); });
 
 // One click listener on the whole document ("event delegation") handles every door and
@@ -1092,13 +1157,13 @@ document.addEventListener('click', e=>{
   if(door){ e.preventDefault();
     const v=document.getElementById(door.dataset.door);
     v.classList.toggle('awake');                                     // click again to close it
-    if(v.classList.contains('awake')) v.scrollIntoView({behavior:'smooth', block:'nearest'});
+    if(v.classList.contains('awake')){ cue('paper'); v.scrollIntoView({behavior:'smooth', block:'nearest'}); }
     return; }
   const sh=e.target.closest('[data-share]');                         // a "pass it on" link?
   if(sh){ e.preventDefault(); shareCard(sh.dataset.slug, sh.dataset.share, sh); return; }
   const lt=e.target.closest('.lrow .lt');                            // an archive essay title?
   if(lt){ const row=lt.closest('.lrow');
-    if(row.classList.contains('open')) row.classList.remove('open'); else unfoldRow(row); }
+    if(row.classList.contains('open')) row.classList.remove('open'); else { unfoldRow(row); cue('paper'); } }
 });
 
 // Arriving with a #post-… link: the essay is either in the stream (its article has the id)
@@ -1116,8 +1181,18 @@ const totop = $('#totop');
 totop.addEventListener('click',()=> scrollTo({top:0, behavior:'smooth'}));
 addEventListener('scroll',()=> totop.classList.toggle('show', scrollY>600));
 
+// the footer's sound switch: flip the preference, relabel, and give a tiny tick of
+// proof when turning ON (turning off is confirmed by the silence itself).
+const snd=$('#snd');
+const sndLabel=()=>{ snd.textContent = soundOn() ? 'sound: on' : 'sound: off' };
+snd.addEventListener('click', e=>{ e.preventDefault();
+  localStorage.setItem('sound', soundOn() ? 'off' : 'on'); sndLabel(); cue('tick'); });
+sndLabel();
+
 // easter egg: click the masthead ornament → toggle the hidden printer's mark.
-$('#ornament').addEventListener('click',()=>{ const m=$('#printmark'); m.style.display = m.style.display==='block'?'none':'block'; });
+$('#ornament').addEventListener('click',()=>{ const m=$('#printmark');
+  m.style.display = m.style.display==='block'?'none':'block';
+  if(m.style.display==='block') cue('chime'); });
 
 /* ---------- the writing desk (#admin) ----------
    A hash "route": when the URL is #admin, .admin-mode hides the site and shows only the editor. */
@@ -1234,6 +1309,7 @@ document.querySelectorAll('#admin .toolbar button').forEach(b=>{
   // view doesn't jump (this is what was yanking you out of the box on H2 / quote).
   b.addEventListener('mousedown', e=> e.preventDefault());
   b.addEventListener('click', ()=>{
+  cue('tick');
   const d=b.dataset;
   if('undo' in d) return undo();
   if(d.cap) return dropCap(d.cap);
@@ -1454,7 +1530,7 @@ $('#press').addEventListener('click', async ()=>{
     const next = await commitOps();
     ENTRIES.length=0; ENTRIES.push(...next); renderAll(); populateExisting();
     pending=[]; $('#press').style.display='none';
-    msg('Pressed ✓ — live on the site in about a minute.');
+    msg('Pressed ✓ — live on the site in about a minute.'); cue('press');
     setTimeout(goHome, 900);
   }catch(err){ msg(err.message, true); }
 });
