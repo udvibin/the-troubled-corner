@@ -1,301 +1,135 @@
-# Personal Website — Spec
+# The Troubled Corner — Current Spec
 
-> The single source of truth. (The old `website-prompt.md` and its CRT/Gen-X aesthetic are retired and deleted.)
-> This is an antique-letterpress site: calm, neutral, welcoming. Like a well-made old book you stumbled into.
+This file describes the current site. The final section lists unbuilt ideas.
 
-## What it is
+## Purpose and rules
 
-A personal space to explore and develop a style. Low stakes — not a portfolio, not for an audience.
-One person's calm corner of the web. Inspiration: [fromjason.xyz](https://www.fromjason.xyz/) (aesthetic), [near.blog](https://near.blog/) (simplicity), and a few restrained ideas from [gwern.net](https://gwern.net/) (typography/dropcaps — borrow taste, not the machinery).
+A personal site for essays, songs, pictures, and found things. One calm page with an antique letterpress style.
 
-## Hard constraints (locked)
+- All site code, CSS, structure, and content live in `index.html`.
+- No framework, build step, server, or libraries. Browser Web Crypto and Canvas are allowed.
+- Fonts and images stay in separate files or use URLs. Never base64-embed these assets in HTML.
+- Keep code small. Explain non-obvious code in plain comments.
+- GitHub Pages hosts https://udvibin.github.io/the-troubled-corner/. Pushing `master` starts deployment.
+- JavaScript renders posts and runs the editor. This is not a PWA: no web app manifest, service worker, or offline mode.
+- No sounds or sound switch.
 
-- **Single-file *code*.** All *code + content + structure* in one `index.html` (CSS in `<style>`, JS in `<script>`, content in the data arrays). The rule that matters: **no framework, no build step, no server, no libraries.** *Assets ≠ code* — fonts live in `fonts/`, images are URLs; sibling asset files are fine and expected. **Never base64-embed fonts/images into the HTML** (bloat + unreadable). The single escape hatch stays: move data to a `posts.json` only if it gets heavy (~40+ entries).
-- **One page, accordion navigation** (see Navigation) — no URL-hash "pages".
-- **Allowed external resources / assets** (assets ≠ code; living *outside* the HTML is fine):
-  - The Google Fonts `<link>` (IM Fell DW Pica + its `SC` cut — load-bearing).
-  - Self-hosted font files in `fonts/` (e.g. `RoyalInitialen.ttf`) via `@font-face`.
-  - Images / woodcut SVGs hosted elsewhere (URLs).
-  - Optionally one ambient audio file.
-- **No libraries.** Pure HTML/CSS/vanilla JS. Web Crypto (`crypto.subtle`) is browser stdlib and allowed.
-- **Host:** GitHub Pages. `git push` auto-deploys. Custom domain whenever (DNS + `CNAME`, security-neutral).
-  Cloudflare Pages / a Worker is a deferred, additive upgrade — not built now.
-- **Responsive, accessible, modern browsers only.**
+## Files
 
----
+- `index.html`: site, styles, data, editor, and publishing.
+- `fonts/RoyalInitialen.ttf`, `fonts/Yinit.otf`: drop-cap fonts.
+- `images/og.jpg`: shared link-preview image. `images/tailpiece.jpg`: footer engraving.
+- `favicon.svg`: tab icon.
+- `checks.cjs`: Node checks, no packages required.
+- `encrypt-token.html`: local reset tool, ignored by Git. It does not ship with the site.
+- `trinkets.md`: ornament registry. `dropcat.md`: deferred cat drop-cap idea.
+- `docs/superpowers/specs/2026-07-04-day-book-design.md`: original day-book design reference.
+- `mock.html` and `Selected Ornaments - Final.html`: local design references, ignored by Git.
 
-## Navigation: accordion (replaces the old hash-route pages)
+## Page structure
 
-One calm page. The **Contents** is the persistent menu at the top. Every content section is a **collapsible fold**, collapsed by default. Clicking a Contents link (or a section heading) **opens that one section, closes the rest, and scrolls it to the top.** No `#/` routes, no URL clutter — pure JS toggle + `scrollIntoView`.
+No top menu, section pages, or strict accordion.
 
-- One section open at a time (strict accordion).
-- After toggling, scroll the opened section to top so the page doesn't lurch.
-- The Colophon is just another fold (no longer a separate page).
-- Long Day-book entries keep their own expand/collapse *inside* the open section (nesting is fine).
-- Admin stays special: revealed via `#admin` / the discreet `◆` link, not part of the accordion.
+1. Masthead: hat ornament, title, byline, and the tagline “thoughts, musings, found things — kept in one place”. Clicking the ornament shows a hidden printer's mark.
+2. Stream: newest three essays plus small entries as new as the oldest of those essays. Entries sort by date. Entries on the cutoff date stay together; with no essays, all small entries show.
+3. Archive: a wake link reveals older entries, grouped by month. Essay title buttons open full text in place. Song rows use the same link format as the stream.
+4. Doors: listening register, external Admonymous link, and colophon. Listening and colophon open in place.
+5. Footer: site identity, email/social links, and engraved tailpiece. A back-to-top button appears after scrolling.
 
----
+`#admin` hides the public page and opens the full-screen writing desk. `#post-slug` opens an essay, including one in the archive. Leaving the desk removes the admin hash.
 
-## Aesthetic: antique letterpress
+## Visual design
 
-### Palette
-| token | hex | use |
-|-------|-----|-----|
-| paper | `#f3efe3` | background — aged ivory; CSS patina on `body` (foxing stains + edge vignette + SVG grain) |
-| ink | `#1f1b16` | body text (warm near-black) |
-| oxblood | `#7c1f1f` | accent: masthead, dates, tags, rules |
-| faded | `#6b6256` | secondary text: metadata, captions, previews |
-| hairline | `rgba(26,26,26,0.12)` | thin rules / dividers |
+| Name | Value | Use |
+| --- | --- | --- |
+| Paper | `#f3efe3` | Aged ivory background |
+| Ink | `#1f1b16` | Main text |
+| Oxblood | `#7c1f1f` | Accents and headings |
+| Faded | `#6b6256` | Secondary text |
+| Hairline | `rgba(26,26,26,.12)` | Thin rules |
 
-No neon, no glow, no scanlines. Contrast comes from serif weight and oxblood, not light effects.
+IM Fell DW Pica is the main typeface, loaded from Google Fonts with its SC cut. Headings use Fell roman. Body size is 20px on desktop and 18px on phones. Main reading width is 680px.
 
-### Typography
-**LOCKED.** One typeface does every job: **IM Fell DW Pica** (Igino Marini's digitisation of a 17th-c. Fell type, ink-spread and all) — body, masthead, post titles. **Headings** use its small-caps cut (`IM Fell DW Pica SC`) + tracking + oxblood — the way to make one font read as a heading. ~19px, line-height ~1.64, reading measure max-width ~680px, single centred column. Both cuts from one Google Fonts `<link>`.
+Royal Initialen and Yinit both work as drop caps, in multiple paragraphs. Block gaps use the spacing variables in `:root`; small gaps can use separate values.
 
-**Drop caps: `Royal Initialen`** — an ornate old initials face, self-hosted from `fonts/` via `@font-face` (Google doesn't carry decorative initial sets), oxblood + a faint letterpress emboss. `fonts/Yinit.otf` (public-domain illuminated set) is kept for a possible *second* drop-cap style later (Gwern-ish variety), not wired yet.
+A fixed `body::before` draws stains, edge shading, and SVG grain. This avoids the iOS fixed-background issue. The footer uses a JPEG engraving with a blend and mask; the phone layout crops and scales it.
 
-> The heading look and the Contents-list ("legend") look are still being **workshopped** — see Pending rebuild steps 3–4.
+Six SVG symbols supply the seed-pod, fleuron, fern, ivy, syrinx, and snail. Renderers stamp these symbols. Song and inspiration marks have text tooltips. No manicule, neon, glow, or scanlines. Reduced-motion CSS stops archive and door opening animations.
 
-> From Gwern: borrow ONE decorative initial via `::first-letter`. Skip his system (random per-letter fonts, light/dark sets, build scripts, themed dropcap packs) — that's the complexity he warned us off.
+## Content
 
-### Ornaments & texture
-- **Drop caps** (Royal Initialen via `::first-letter`, oxblood + faint emboss) on the first paragraph of the Colophon/Welcome and long entries.
-- **Aged paper:** a CSS patina on `body` — foxing stains + edge vignette + a fine SVG-noise grain. No image file.
-- **Woodcut / engraving illustrations** from public-domain archives (Old Book Illustrations, rawpixel PD) as external SVG/PNG. The masthead currently uses an inline SVG ornament (swap for a woodcut anytime).
-- **Star dividers** `★ ★ ★ ★ ★` and thin oxblood/hairline rules.
-- **Manicule** (pointing-hand ☞) for "back to top" and permalinks.
-- Single centered column, generous whitespace, everything eased (`transition: 0.25s ease`) but subtle.
+One `ENTRIES` array holds four types:
 
----
+| Type | Fields |
+| --- | --- |
+| Essay | `type`, `slug`, `date`, `title`, `preview`, Markdown `body`, optional `cover`, `songs` |
+| Song | `type`, `id`, `date`, `text`, optional `url`, `song` |
+| Picture | `type`, `id`, `date`, `src`, `caption` |
+| Inspiration | `type`, `id`, `date`, `text`, optional `url` |
 
-## Content model: one dated stream ("Day-book")
+New small entries get stable IDs. Editing an old small entry gives it an ID. Old entries without IDs match by saved fields. Essays match by slug.
 
-Merge the old separate `POSTS` (writing) and `PLATES` (photos) into **one chronological stream**. Each entry carries only what it has — text, an image, or both:
+Keep the `// === ENTRIES_START ===` and `// === ENTRIES_END ===` markers. Publish uses `JSON.stringify` and escapes less-than signs so text cannot end the surrounding script.
 
-```js
-const ENTRIES = [
-  { slug, date:"2026-06-17", title:"", body:"<p>HTML…</p>", image:"", caption:"" }
-  // title / body / image / caption all OPTIONAL
-];
-```
+The page and preview share `entryHTML()` and `mdToHtml()`. Markdown supports bold, italic, inline code, H2/H3, quotes, lists, links, images, and rules. Directives add `:dropcap:`, `:dropcap2:`, and `:fig-left/right: url | caption`. Raw HTML remains an author-trusted option; the renderer does not sanitize it.
 
-Render rule (no entry "types"):
-- image only → a photo post · text only → a writing post · both → both, stacked.
-- title + long body → collapses (title is the toggle); a bare photo or quick note shows inline.
-- newest first.
+The listening register collects song entries and essay songs. There are no separate `LISTENING`, `LINKS`, or `PLATES` arrays. Legacy artist fields still render. Song links open the source; there is no embedded music player.
 
-This makes posting feel natural — a record of your days, not content sorted into bins. (If a photos-only grid is ever missed, add a tiny filter — not before.)
+## Writing desk
 
-**Other data arrays (unchanged):**
-```js
-const LISTENING = [ { album, artist, note, url } ];
-const LINKS     = [ { title, url, note } ];
-```
+Open `#admin`, enter the passphrase, and select Unlock. The type picker shows the fields needed for each post type.
 
-Arrays live between `// === POSTS_START/END ===` (and equivalents) markers, serialized with `JSON.stringify(arr, null, 2)` so the in-site editor can find-and-replace reliably and bodies with quotes/backticks/newlines escape correctly.
+- New posts use today's local date. Edits keep the saved date. There is no date field.
+- Essay slugs follow the title until edited by hand.
+- The Markdown toolbar inserts text at the selection. It has undo, drop caps, and floated figures. A cheatsheet sits beside the text area.
+- The live preview uses the public renderer, with share links hidden.
+- Spotify oEmbed can fill an empty song-name field. The name stays editable.
+- Essay link/song fields append a song. Removing a saved essay song still needs a source edit.
+- The existing-entry list loads a post for edit or delete. Its empty choice starts a new post.
+- Save stages changes in memory. Delete asks first, then stages removal. Neither publishes yet.
+- Leaving warns about unsaved form text or staged changes. Clear and entry selection ask before discarding text. There is no local draft save or crash recovery.
 
----
+## Lock and reset
 
-## Sections (each a collapsible fold under Contents)
+`CONFIG` points to `udvibin/the-troubled-corner`, branch `master`. `TOKEN_CIPHER` holds an encrypted fine-grained GitHub token with Contents write access for this repo.
 
-1. **Masthead** — inline SVG ornament (also the easter egg), title in display face, italic tagline, lowercase byline. Always visible.
-2. **Contents** — the persistent menu. Lists every section + (under the Day-book) each entry; discreet `◆` admin link. Always visible; drives the accordion.
-3. **Welcome / Colophon** — intro blurb (drop cap); Colophon documents how the site is made (typefaces, build, host, editor, ornaments, credits to fromjason/near.blog).
-4. **Day-book** — the unified stream above. Newest first; long entries collapse; permalink manicule copies `#slug`.
-5. **Listening** — hand-curated album/artist/note/link list (`LISTENING`).
-6. **Marginalia** — curated links (`LINKS`).
-7. **Admonitions** — anonymous feedback. **Now:** a link out to `admonymous.co/uday-gupta` (their backend handles inbox + spam). **Later option:** a native letterpress-styled form posting to a free form service (Web3Forms / Formspree) so it lives in-site — anonymous inbox needs *some* backend; borrow one, run none.
-8. **Footer** — small ornament, year, colophon line, social/email.
-9. **Admin (hidden)** — see below.
+PBKDF2 uses SHA-256 and 250,000 iterations to derive an AES-GCM 256-bit key. The decrypted token stays in memory. A wrong passphrase fails; refresh forgets the unlocked token. With `TOKEN_CIPHER: null`, the desk opens in local-only mode.
 
----
+The local `encrypt-token.html` tool accepts a token and new passphrase, makes a fresh salt and IV, and returns encrypted data. It sends no data, saves no secrets, and clears secret fields after success. Keep the passphrase in a password manager. Never commit a plain token or passphrase. Public encrypted data permits offline password guesses, so use a strong phrase.
 
-## Trinkets (trimmed for calm)
+To reset: supply a saved or new token to the local tool, replace `CONFIG.TOKEN_CIPHER`, then publish the site change. Test unlock and publishing. Revoke the old token if replaced. The tool cannot recover a lost passphrase.
 
-CRT/neon trinkets are cut. Kept, quiet and in-theme: back-to-top manicule; one subtle easter egg (click masthead ornament → hidden printer's mark); optional ambient audio toggle (OFF by default, currently left out).
+## Publishing and images
 
----
+Publish fetches live `index.html` through GitHub's contents API, parses the live array, applies staged changes, and sends one commit with the file SHA. A 409 conflict causes one fresh fetch and retry. Errors show in the desk. GitHub Pages then deploys the commit.
 
-## Admin panel / in-browser editor
+Image upload makes a separate commit to `images/` at once. It fills the empty image field, or inserts an image in the body if that field already has a value. Uploads do not wait for Publish.
 
-Hidden section, always in the DOM, revealed via `#admin` / the `◆` link. Styled to match the site.
+## Share cards
 
-### Auth — option B: passphrase decrypts a committed, encrypted token (no backend)
-- A **fine-grained GitHub PAT**, scoped to **this one repo, `contents: write` only**, **AES-GCM encrypted with a passphrase-derived key (PBKDF2 via `crypto.subtle`)** and committed into `index.html` as ciphertext (`CONFIG.TOKEN_CIPHER`). Plaintext token never in the file or git. `encrypt-token.html` produces the ciphertext (throwaway).
-- Passphrase input → derive key → decrypt → token held in memory. Wrong passphrase → decrypt throws → editor stays locked (real gate, not a client-side `if`).
-- **Threat model:** static site, so the only risk is the token leaking; ciphertext is public but useless without the passphrase (offline brute-force only → strong passphrase). If it leaks anyway: revoke, blast radius is one repo. Upgrade path: a Worker holds the token server-side (option C), additive.
+Each public essay has a “pass it on” line. Story makes a 1080 × 1920 JPEG; Card makes a 1600 × 900 JPEG.
 
-### Editor — textarea, not `execCommand` (deprecated)
-- **Fields:** Title; Slug (auto from title, editable); Date (`<input type="date">`, defaults today); Preview; **Image URL (optional)**; (Caption optional). Body is optional too — an entry can be image-only.
-- **Body:** a `<textarea>` of raw HTML + a toolbar that wraps the selection via `selectionStart/End` (strong/em/H2/H3/lists/blockquote/code/link/img/hr).
-- **Live preview:** `preview.innerHTML = textarea.value`, styled like a real entry.
-- **Edit existing:** dropdown loads an entry's fields back in; same publish flow.
+Canvas draws paper effects, date, wrapped title, Royal drop cap, opening text, and site address. It waits for fonts, limits text to fit, and breaks long words. It does not export the whole essay.
 
-### Publish
-`GET` contents/index.html (content+SHA) → parse the `ENTRIES` block between markers → insert/replace newest-first → re-serialize with `JSON.stringify` → reassemble → base64 → `PUT` with SHA + `new post: {title}`. Handle invalid passphrase, bad/expired token, network failure, rate limit, **SHA conflict (re-fetch + retry)** — clear message each. Success → "live in ~a minute" + Reload.
+A dialog shows the result. Download saves it. Share appears where the browser supports file sharing. Copy link copies the essay URL. Errors have clear messages; a failed share leaves Download available. Closing releases the temporary image URL.
 
-### Migration path (deferred)
-If the file gets heavy (~40+ entries): move arrays to a `posts.json` fetched on load; publish targets that file. Same UI. Don't build until it hurts.
+Attach the image to a social post and add the essay link yourself. A pasted link alone uses the shared `og:image`, not the generated essay image. The page has description and Open Graph tags, theme colour, and a favicon. Per-essay social preview pages do not exist.
 
----
+## Checks and limits
 
-## Pending rebuild (ordered punch list)
+`node checks.cjs` checks script syntax, small-entry add/edit behaviour, safe data serialization, the actual unlock function, wrong-passphrase and changed-data rejection, and share/copy errors. If the local reset tool exists, the checks also use it to make test data.
 
-### Done ✅
-- **Type system** — IM Fell DW Pica everywhere; **headings finalised as Fell roman** (the small-caps cut was dropped for headings). Aged-paper background + palette.
-- **Drop caps — both faces wired & tuned.** Royal **and** Yinit (`fonts/Yinit.otf` now registered via `@font-face`). Insertable **anywhere, any number of times** (gwern-style) via the editor's `drop-cap` / `cap²` buttons → `:dropcap:` / `:dropcap2:` directives; re-click toggles off, other button switches face. Sizing tuned with the (now-deleted) `dropcap-tuner.html`; the secret was a big **negative `margin-bottom`** to crop each font's hollow lower em-box.
-- **Slim nav** (replaces the old big "Contents" list/tree) — a quiet centred row *Welcome · Writing · Listening · Plates · Marginalia · Colophon · ◆*; the dated stream carries the page. (rotational-style; spec step 3 ✅.)
-- **Markdown editor.** Body is written in **Markdown**, not raw HTML. A tiny hand-rolled `mdToHtml()` (no library) renders both the live preview and the site. Toolbar inserts Markdown; special site bits are one-line directives (`:dropcap:`, `:fig-left: url | caption`). Toolbar redesigned as tactile "keys"; a **cheatsheet** is pinned beside the writing area; focus-stealing bug on H2/quote fixed.
-- **`#admin` is a full-screen route** (not a fold): visiting `#admin` hides the whole site and shows only the writing desk; leaving it restores the site.
-- **Real publishing pipeline (code side).** Publish now commits straight to GitHub: passphrase → PBKDF2/AES-GCM decrypt of `CONFIG.TOKEN_CIPHER` → token in memory → GET live `index.html` → parse the **live** `POSTS` block (safe across devices) → insert/replace newest-first → `PUT` with sha (409 conflict → one re-fetch + retry). Human error message per failure mode. **Image upload from device**: `<input type="file">` → base64 → committed to `images/`, `raw.githubusercontent.com` URL auto-filled (empty Cover field claims it, else inserted in body at cursor). While `TOKEN_CIPHER` is `null`, Publish falls back to local/in-memory so the desk still works.
-- **Editor niceties** — auto date (today, no field); date renders pretty ("Saturday, June 20, 2026") **below the title/preview line**; undo stack + ↶ button + Ctrl+Z; mobile-friendly (touch targets, stacks); blockquote = oxblood side-rule + upright faded text; inline **floated figures** with captions (`fig◧`/`fig◨` → `:fig-left/right:`).
-- Aesthetic + accordion-fold groundwork from earlier sessions.
+These checks do not prove visual card layout or phone-app sharing. Test those in a real browser. The new passphrase and token access also need a real unlock and publish check; code checks use a test token.
 
-### Done since (July 2–4, 2026) ✅
-- **Site is LIVE**: https://udvibin.github.io/the-troubled-corner/ (Pages enabled; rode out a
-  GitHub Pages incident on Jul 2).
-- **Footer identity**: AI-generated engraved tailpiece (`images/tailpiece.jpg`, 0.56MB) with
-  the "sinking page" blend (negative margin + mask + multiply); hat printer's-device SVG in
-  the masthead; smoke-wisp animation removed (uncommitted in working tree).
-- **Plates section removed entirely** (array, render, lightbox, nav entry).
-- **UX fixes**: fold-open fade animation; `overflow-x:hidden` scrollbar fix.
-- **STRUCTURE DECIDED — the Day-book** (brainstormed to convergence; full design doc:
-  `docs/superpowers/specs/2026-07-04-day-book-design.md`; visual reference: `mock.html`).
-  One dated ENTRIES stream (essay/song/picture/inspiration), last 3 essays on the page,
-  month-grouped ledger archive waking below (unfold-in-place), doors at the foot only,
-  no nav bar, no full/brief toggle, no marginalia register. Date under title; a blog's
-  songs share the date line. Spotify album links, `target="_blank"` (answers old to-do 3 —
-  links, not embeds).
-- **Trinkets pressed** (Claude Design + design system "the troubled corner" synced from
-  this repo): 6 ornaments won and wired into `mock.html` as `<symbol>`s — seed-pod
-  end-mark, four-petal-fleuron divider, fern-crozier door pointer, ivy month flourish,
-  syrinx song mark, snail inspiration mark. See `trinkets.md` for the registry + prompts.
+## Future work — not built
 
-### To do (next session)
-1. ~~BUILD THE DAY-BOOK into `index.html`~~ ✅ **DONE 2026-07-05** — ENTRIES array
-   (essay/song/picture/inspiration) between `ENTRIES_START/END` markers, renderStream/
-   renderArchive/renderListening/renderFooter, editor type-picker, publishing parses
-   ENTRIES (`commitChange`), all six trinkets wired with instant `.tip` tooltips.
-   Footer text decided: "all of it, by me" / "more of me:" above the link row /
-   "since 2026". The desk can now **edit or delete ANY entry** (dropdown lists all;
-   essays matched by slug, small entries by type+date+text; edits keep the original
-   date; Delete asks first). check.js rebuilt (scratchpad), all checks green; verified
-   with headless-Edge screenshots. **Remaining**: Uday eyeballs the live page, then
-   delete `mock.html` + `Selected Ornaments - Final.html`.
-2. ~~Fill the footer social URLs~~ ✅ done 2026-07-05 (github/instagram/spotify/
-   letterboxd profiles wired; footer = "all of it, by me · since 2026" + "more of me"
-   with the fern pointing at the link row).
-3. ~~Go live for publishing~~ ✅ done 2026-07-05 — TOKEN_CIPHER set in CONFIG,
-   encrypt-token.html deleted (recoverable from git history if a re-key is ever
-   needed). Publishing verified end-to-end from the live site (2026-07-07: the desk
-   made real commits). Re-keyed once after a forgotten passphrase.
-4. ~~Commit housekeeping~~ ✅ done 2026-07-15 — `images/tailpiece.png` (3.8MB original)
-   deleted (the served `tailpiece.jpg` stays); `AGENTS.md` committed. `mock.html` +
-   `Selected Ornaments - Final.html` kept in the working tree for now (Uday's call —
-   they're untracked, so deleting would be unrecoverable).
+- Explore a public page without JS after using the current editor and making posts. Keep this version until the trial works.
+- Custom domain through DNS and `CNAME`.
+- Cloudflare Pages or a Worker; a Worker could hold the publishing token on the server.
+- Move data to `posts.json` if the single file grows too large, around 40 or more entries. Do not add it before needed.
+- A photo-only filter if the need returns.
+- A native anonymous message form through Web3Forms or Formspree instead of the external Admonymous link.
+- Refine ivy. Try the unbuilt plate frame and smoke curl. Try new masthead designs before replacing the hat.
+- The full A–Z cat drop-cap set in `dropcat.md`.
 
-### Landed 2026-07-18 — the sounds + full colophon credits ✅
-- **Four interaction sounds**, synthesized live with the Web Audio API in ~45 in-file
-  lines — no recordings, no files, no library (idea credited to Cuelume,
-  cuelume-site.pages.dev; their npm package would break the no-libraries rule, so the
-  sounds are hand-pressed like the trinkets). The cue sheet: **paper** (archive wake,
-  ledger essay unfold, doors opening), **press** (share-card press, Publish success —
-  a platen thump), **tick** (the desk's toolbar keys), **chime** (the masthead
-  easter egg). All fire only inside clicks (autoplay-safe); volumes deliberately shy.
-- **Footer "sound: on/off" switch**, preference in localStorage.
-- **Colophon rewritten with full credits** ("Debts, gladly owed"): From Jason first
-  (the whole inspiration), near.blog, rotational, gwern, Cuelume, Igino Marini's Fell
-  types, Royal Initialen + Yinit, Admonymous, GitHub Pages, and an honest line about
-  the machine-argued tailpiece. New "The sounds" section; typefaces paragraph fixed
-  (small-caps-for-headings claim was stale; Yinit now mentioned).
-
-### Landed 2026-07-15 (third pass) — code-review fixes ✅
-Multi-angle review of the day's diff; all confirmed findings fixed: the desk's live
-preview no longer shows the share line (it would have shared the PUBLISHED essay, not
-the draft); share links carry `href="#"` (keyboard/screen-reader reachable); an
-in-progress "pressing the card…" state guards double-taps and gives instant feedback;
-`wrapLines` hard-breaks words wider than a line (long URLs stayed inside the card);
-the drop cap skips leading headings; cards export as JPEG (~200KB vs ~2MB PNG) with
-the palette read from `:root` at draw time and every layout number in one spec object
-per format; `SITE_URL` derives from `CONFIG.OWNER/REPO`; footer wordmark got the same
-`clamp()` floor as the masthead; remaining ≥.8rem gaps snapped to the spacing scale;
-`og:image` now points at a dedicated light 1200×630 crop (`images/og.jpg`, 276KB —
-scrapers skip heavy 2:1 originals).
-
-### Landed 2026-07-15 (second pass) — type, rhythm, tagline, share cards ✅
-- **Body type up a point**: 20px desktop / 18px phones (was 19/17) — easier reading.
-- **Vertical rhythm**: a five-step spacing scale in `:root` (`--s1:.8rem` … `--s6:4.8rem`);
-  every block gap ≥1rem snapped to it (micro-gaps stay hand-tuned). Mobile mostly
-  inherits the same steps instead of one-off overrides.
-- **Tagline chosen**: *"thoughts, musings, found things — kept in one place"* (no
-  press-pun by request — the press is the look, not the words).
-- **SHARE CARDS** — the "pass it on" line under every essay (stream + unfolded archive
-  rows): *story* (1080×1920, Instagram) or *card* (1600×900, Twitter/X). Draws the
-  essay onto a `<canvas>` — paper + vignette + foxing, small-caps date, title, Royal
-  drop cap, the opening sentences ("…"-cut to fit), and the site's address at the
-  foot — copies the `#post-slug` deep link to the clipboard, then `navigator.share`
-  (phone share sheet) or a straight PNG download (desktop). Instagram can't take a
-  link programmatically: post the card, paste the copied link into the story's link
-  sticker. Zero libraries; the fonts already on the page set the type.
-- **Masthead fits phones**: title `clamp()` minimum lowered (2.4rem → 1.5rem, 7.5vw
-  preferred) so "— the troubled corner —" sits on one line down to 320px; ornament
-  88px and tighter padding on mobile — the newest entry now lands above the fold.
-- **Footer un-shrunk on mobile**: the old phone override made it fine print; it now
-  holds desktop sizes (`footer` .95em) and the link row wraps on a roomy line-height.
-- **Tailpiece with presence on phones**: 135vw wide, biased 12vw left so the man and
-  tree keep their place and the red sun stays just in frame (right field crops away).
-- **iOS paper fix**: the patina (foxing/vignette/grain) moved from
-  `background-attachment:fixed` (ignored by iOS Safari — would stretch the vignette
-  over the whole scroll height) to a `position:fixed` `body::before` pane. Desktop
-  renders identically.
-- **Link-sharing basics**: `<meta name="description">`, `og:title/description/image`
-  (the tailpiece), `theme-color` paper tint, and a `favicon.svg` — the hat device
-  re-cut with heavier strokes so it reads at 16px.
-- Dev nicety: `.claude/launch.json` serves the folder locally for previewing.
-
-### Landed since the build (2026-07-06 → 07)
-- **The desk is gated**: `#admin` shows one centred passphrase field (with a
-  show/hide toggle); the form appears only after the passphrase decrypts the token
-  (`unlock()` → same `getToken` crypto — a door in front of the real lock). While
-  TOKEN_CIPHER is null the desk opens directly (local-only mode).
-- **Batched publishing**: Save/Delete only stage ops (`pending` queue) and re-render
-  the local page; "Publish N changes" replays the queue onto the freshly-fetched live
-  file and PUTs ONE commit (sha + 409 retry preserved). `beforeunload` guards staged
-  work. Image uploads still commit immediately (their URL must exist first).
-- **Delete + edit any entry** from the desk dropdown; edits keep the original date.
-- **Song lines, final design**: your words (never a link) · fern · the track/album/
-  playlist **name as the hyperlink**. The name auto-fills from a Spotify link via
-  their public oEmbed endpoint (CORS-open; title+thumbnail only). **Artist is
-  unfetchable browser-side** — confirmed: oEmbed has no artist field, the embed page
-  has it but sends no CORS header, the real API needs credentials a serverless site
-  can't hold — so there is no artist field; old saved `artist`/`art` fields render/
-  are ignored harmlessly. Album-art experiment (oxblood duotone stamp) was tried and
-  rejected — links, not pictures.
-- **Essays can carry date-line songs from the desk**: the same Link/Song fields on
-  the essay form append `{song,url}` to `songs[]`; existing songs survive edits
-  (removal = hand-edit, deliberately). Listening register uses the same line design,
-  tagged `· with "essay title"`.
-- **No manicule anywhere**: ferns point everywhere instead (flipped = back, rotated
-  = up/top button); colophon prose updated.
-- **Clean URLs**: leaving the desk uses `history.replaceState` (no dangling `/#`).
-5. **Trinket iterations** (Claude Design, new chat per ornament): improve ivy tendril
-   (snail done in-code 2026-07-04 as a concentric spiral); unpressed: plate frame,
-   smoke curl. **Masthead device**: Uday isn't sold on the hat — press candidates in
-   Claude Design like the other trinkets, swap in a winner.
-6. ~~Tagline~~ ✅ done 2026-07-15 — "thoughts, musings, found things — kept in one
-   place" (Uday's brief: what the site keeps, not a press pun).
-7. **dropcat** — parked in `dropcat.md`.
-
-**Reference (liked):** [rotational.co.uk](https://rotational.co.uk/) — calm single-column serif blog; slim horizontal nav; newest-first stream; hairline separators; writing carries it. Other touchstones: fromjason.xyz, near.blog, sive.rs, stephango.com, wiki.xxiivv.com.
-
-## Open decisions
-- **Fonts:** ✅ locked — IM Fell DW Pica everywhere; **headings = Fell roman**.
-- **Drop caps:** ✅ locked & tuned — Royal + Yinit, both selectable per paragraph.
-- **Heading style:** ✅ resolved — Fell roman (small-caps cut retired for headings).
-- **Contents / legend:** ✅ resolved — slim horizontal nav.
-- **Editor model:** ✅ resolved — Markdown.
-- **Day-book name:** ✅ resolved — the day-book (the page itself wears no section name; see the 2026-07-04 design doc).
-- **Tagline:** ✅ resolved 2026-07-15 — "thoughts, musings, found things — kept in one place".
-
-## Conventions
-Single file, zero deps, comment heavily for learning (lean code, rich comments). Post bodies are **Markdown**. See `CLAUDE.md`.
+Design references remain From Jason, near.blog, rotational, gwern, sive.rs, stephango.com, and wiki.xxiivv.com. Use `trinkets.md` for ornament work.

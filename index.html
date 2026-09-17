@@ -175,7 +175,7 @@
   .ledger{ max-width:800px; margin:0 auto }
   .lrow{ display:grid; grid-template-columns:104px 1fr; gap:1.3rem; border-top:1px solid var(--hairline); padding:1rem 0 }
   .lrow .gut{ text-align:right; padding-top:.3rem }                        /* the date gutter */
-  .lrow .lt{ font-size:1.35rem; cursor:pointer } .lrow .lt:hover{ color:var(--oxblood) }
+  .lrow .lt{ font:inherit; font-size:1.35rem; cursor:pointer; border:0; background:none; color:inherit; padding:0; text-align:left } .lrow .lt:hover{ color:var(--oxblood) }
   .lrow .lp{ color:var(--faded); font-size:.9em; margin-top:.1rem }
   .lrow.small .lbody{ color:var(--faded); font-style:italic; font-size:.97em }
   .lrow .thumb{ width:120px; display:block; filter:sepia(.12) saturate(.9) }
@@ -277,10 +277,6 @@
   .tp-links a{ margin:0 .35em }
   /* "more of me" sits on its own quiet line above the link row, fern pointing onward */
   .tp-more{ font-style:italic; color:var(--faded); margin:.15em 0 }
-  /* the sound switch under the links: quiet by default, oxblood when looked at */
-  .tp-snd{ font-style:italic; font-size:.85em; margin-top:.3em }
-  .tp-snd a{ color:var(--faded) } .tp-snd a:hover{ color:var(--oxblood) }
-
   /* back-to-top button. position:fixed = stays pinned to the screen corner while you scroll
      (vs the page). It starts invisible (opacity:0); JS adds .show past 600px of scroll. */
   #totop{ position:fixed; right:18px; bottom:18px; font-size:1.6rem; color:var(--oxblood);
@@ -383,6 +379,14 @@
        the red sun still lands just inside the frame. */
     .tailpiece{ width:135vw; margin:-32vw 0 0 calc(50% - 62vw) }
   }
+  /* The preview stays inside the screen; the exported image keeps its full size. */
+  #card-dialog{width:min(38rem,90vw);max-height:90vh;overflow:auto;background:var(--paper);color:var(--ink);border:1px solid var(--hairline);padding:var(--s2)}
+  #card-dialog::backdrop{background:rgba(31,27,22,.55)}
+  #card-preview{display:block;max-width:100%;max-height:55vh;margin:auto;object-fit:contain}
+  #card-dialog button{font:inherit;cursor:pointer}
+  #card-link{width:100%;box-sizing:border-box}
+  #totop{padding:0;font-family:inherit;visibility:hidden}
+  #totop.show{visibility:visible}
 </style>
 </head>
 <body>
@@ -427,7 +431,8 @@ const CONFIG = {
   OWNER: "udvibin",
   REPO:  "the-troubled-corner",
   BRANCH:"master",
-  TOKEN_CIPHER: {"salt":"m5mrF4dYXifg7ayiYNQuvA==","iv":"GACr0i+fPLfv8xW4","ct":"lkAGmJzMyyJ7MEBe3wdqulW/ptwgPcu1NXYKTVq2tGYLZplcCS/6DP5WuJD2WhzN/qbzNQnSK0Ybqn4o3XQweXFQ3fkrrsebMDW1vmNq65wn/YFVNGqjSB0KDZSzxSibPhl8Al8BWw1Pn6wKLA=="}   // encrypted with encrypt-token.html; null = publish stays local-only
+  // encrypted with encrypt-token.html; null = publish stays local-only
+  TOKEN_CIPHER: {"salt":"zwsWvRmaNumSS9AeYRRzww==","iv":"zYwTPu5AbdoZ2Oqb","ct":"tQ/aDRNUT2xfNAVT4PH+7o6R6UerySQZw80jWDKRvD5eht0T21mfVYze6YcExmm1jPNPctDqEHF3oRNJWY/pl7dIr3AbOIB2NlV3MWyK7aJZdOmnKFG0NJz56+my3Nsq+X8DCNLkKYfxNc3Elg=="}
 };
 // ---------------------------------------------------------------------------
 </script>
@@ -588,13 +593,6 @@ const CONFIG = {
     are this site's own set of ornaments, made for it and used nowhere else. Drop caps are an older
     printer's convention, borrowed with thanks.</p>
 
-  <h3>The sounds</h3>
-  <p>Some things on this page make small sounds. The archive sounds like paper, the desk keys tick,
-    sharing a card sounds like a press. None of them are recordings. They're generated in your browser
-    the moment you click, the same way the rest of the page is drawn. The idea came from
-    <a href="https://cuelume-site.pages.dev/">Cuelume</a>. If you'd rather have it silent, there's a
-    switch at the bottom of the page.</p>
-
   <h3>Credits</h3>
   <p>The inspiration for this whole site came from <a href="https://www.fromjason.xyz/">From Jason</a>.
     I found it one day and wanted a corner of my own. If you like it here, you'll probably like it
@@ -602,7 +600,7 @@ const CONFIG = {
   <p>The rest of the credits: <a href="https://near.blog/">near.blog</a> for showing how simple a site
     can be. <a href="https://rotational.co.uk/">rotational</a> for the calm dated stream this page is
     built like. <a href="https://gwern.net/">gwern</a> for the drop caps idea.
-    <a href="https://cuelume-site.pages.dev/">Cuelume</a> for the sounds idea. Igino Marini for the
+    Igino Marini for the
     Fell types. The <em>Royal Initialen</em> and <em>Yinit</em> sets for the drop caps themselves.
     <a href="https://www.admonymous.co/">Admonymous</a> for handling the anonymous messages. GitHub
     Pages for the free hosting. The engraving at the bottom was AI-generated, then tuned by hand to
@@ -628,9 +626,6 @@ const CONFIG = {
       <a href="https://open.spotify.com/user/leggob0is" target="_blank" rel="noopener">spotify</a> ·
       <a href="https://letterboxd.com/moviesoverlove/" target="_blank" rel="noopener">letterboxd</a>
     </nav>
-    <!-- the sound switch: the page's little noises, on or off. JS writes the label and
-         the browser remembers the choice (localStorage). -->
-    <div class="tp-snd"><a href="#" id="snd"></a></div>
   </div>
   <!-- THE TAILPIECE. The full closing engraving (images/tailpiece.jpg), risen behind the
        end of the page — the "sinking page" blend. -->
@@ -781,7 +776,17 @@ Blank line between paragraphs."></textarea>
 </section>
 
 <!-- Lives outside everything because it floats over the page (position:fixed). -->
-<div id="totop" title="back to top"><svg class="orn orn-fern up"><use href="#o-fern"/></svg></div>
+<button type="button" id="totop" title="back to top" aria-label="Back to top"><svg class="orn orn-fern up"><use href="#o-fern"/></svg></button>
+
+<!-- Make the image first. A separate Share click keeps the browser's share permission active. -->
+<dialog id="card-dialog" aria-labelledby="card-title">
+  <h2 id="card-title">Your share card</h2>
+  <img id="card-preview" alt="Preview of the essay share card">
+  <p><a id="card-download" download>Download image</a> · <button id="card-share" type="button">Share image</button> · <button id="card-copy" type="button">Copy link</button></p>
+  <label for="card-link">Post link</label><input id="card-link" readonly>
+  <p id="card-status" role="status"></p>
+  <form method="dialog"><button>Close</button></form>
+</dialog>
 
 <!--
   ============================ BEHAVIOUR ============================
@@ -885,14 +890,13 @@ function renderArchive(){
     if(m!==mo){ mo=m; out+=`<div class="mo">${stamp('o-ivy','orn-ivy flip')} ${m} ${stamp('o-ivy','orn-ivy')}</div>`; }
     const gut=`<div class="gut d">${fmtDay(e.date)}</div>`;
     if(e.type==='essay')                        // title + preview; clicking the title unfolds .full in place
-      out+=`<div class="lrow" data-slug="${e.slug}">${gut}<div class="lbody"><div class="lt">${e.title}</div>`+
+      out+=`<div class="lrow" data-slug="${e.slug}">${gut}<div class="lbody"><button type="button" class="lt" aria-expanded="false">${e.title}</button>`+
         `${e.preview?`<div class="lp">${e.preview}</div>`:''}<div class="full"></div></div></div>`;
     else if(e.type==='picture')
       out+=`<div class="lrow">${gut}<div class="lbody"><img class="thumb" src="${e.src}" alt="">`+
         `${e.caption?`<div class="lp" style="font-style:italic">${mdInline(e.caption)}</div>`:''}</div></div>`;
     else
-      out+=`<div class="lrow small">${gut}<div class="lbody">${MARK[e.type]||''} — ${mdInline(e.text||'')}`+
-        `${e.url?` <a target="_blank" rel="noopener" href="${e.url}">↗</a>`:''}</div></div>`;
+      out+=`<div class="lrow small">${gut}<div class="lbody">${MARK[e.type]||''} — ${smallLine(e)}</div></div>`;
   }
   $('#archive').innerHTML=out;
 }
@@ -917,10 +921,8 @@ function renderListening(){
 /* ---------- share cards: an essay pressed onto a picture ----------
    The "pass it on" line under each essay. Clicking "story" (1080×1920, Instagram) or
    "card" (1600×900, Twitter) paints the essay's opening onto a <canvas> — paper,
-   vignette, foxing, title, drop cap, first sentences, and the site's address — then:
-     1. copies the essay's deep link (#post-slug) to the clipboard, and
-     2. hands the PNG to the phone's share sheet (navigator.share) — or, on a desktop
-        with no share sheet, downloads it.
+   vignette, foxing, title, drop cap, first sentences, and the site's address.
+   The preview offers separate controls to download/share the JPEG and copy the link.
    Instagram can't be given a link programmatically; the flow is: share/save the card,
    post it, paste the copied link into the story's link sticker. On Twitter, attach the
    card and paste the link as the tweet text. No library, no server — the same browser
@@ -1029,27 +1031,47 @@ async function drawCard(e,fmt){
   return c;
 }
 
-// build → copy the deep link → hand the card to the share sheet (or download it)
+// Keep one image while the dialog is open. Release its temporary URL on close.
+let cardFile=null, cardObjectURL=null;
+const cardDialog=$('#card-dialog');
 async function shareCard(slug,fmt,from){
   const e=ENTRIES.find(x=>x.type==='essay'&&x.slug===slug); if(!e) return;
   const line=from.closest('.shareline'), old=line.innerHTML;
-  // instant feedback — and because this removes the links, a double-tap can't fire twice
-  line.innerHTML='<span>pressing the card…</span>'; cue('press');
-  const c=await drawCard(e,fmt), url=`${SITE_URL}#post-${e.slug}`;
-  try{ await navigator.clipboard.writeText(url) }catch(_){}
-  // JPEG, not PNG: the paper texture compresses far smaller and encodes faster
-  c.toBlob(async blob=>{
-    const file=new File([blob],`${e.slug}-${fmt}.jpg`,{type:'image/jpeg'});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file], title:e.title, text:url}) }catch(_){} // user closing the sheet is fine
-    }else{
-      const a=el('a'); a.href=URL.createObjectURL(blob); a.download=file.name;
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
-    }
-    line.innerHTML='<span>card ready. its link is copied, paste it wherever you post</span>';
-    setTimeout(()=>line.innerHTML=old, 4500);
-  },'image/jpeg',.92);
+  line.textContent='Making the card…';
+  try{
+    const c=await drawCard(e,fmt);
+    const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.92));
+    if(!blob) throw new Error('Could not make the image. Please try again.');
+    cardFile=new File([blob],`${e.slug}-${fmt}.jpg`,{type:'image/jpeg'});
+    if(cardObjectURL) URL.revokeObjectURL(cardObjectURL);
+    cardObjectURL=URL.createObjectURL(blob);
+    $('#card-preview').src=cardObjectURL;
+    $('#card-download').href=cardObjectURL;
+    $('#card-download').download=cardFile.name;
+    $('#card-link').value=`${SITE_URL}#post-${e.slug}`;
+    $('#card-status').textContent='Download or share the image. Copy the link to add it to your post.';
+    $('#card-share').hidden=!(navigator.canShare && navigator.canShare({files:[cardFile]}));
+    cardDialog.showModal();
+  }catch(err){ alert(err.message || 'Could not make the card. Please try again.'); }
+  finally{line.innerHTML=old;}
 }
+$('#card-share').addEventListener('click',async()=>{
+  try{
+    await navigator.share({files:[cardFile]});
+    $('#card-status').textContent='Image sent to the share app. Add the post link there.';
+  }catch(err){ $('#card-status').textContent=err.name==='AbortError'
+    ? 'Share closed. You can still download the image.'
+    : 'Sharing failed. Use Download image instead.'; }
+});
+$('#card-copy').addEventListener('click',async()=>{
+  try{ await navigator.clipboard.writeText($('#card-link').value); $('#card-status').textContent='Link copied.'; }
+  catch{ $('#card-link').select(); $('#card-status').textContent='Copy failed. Select and copy the link above.'; }
+});
+cardDialog.addEventListener('close',()=>{
+  if(cardObjectURL) URL.revokeObjectURL(cardObjectURL);
+  cardObjectURL=null; cardFile=null;
+  $('#card-preview').removeAttribute('src'); $('#card-download').removeAttribute('href');
+});
 
 /* ---------- a tiny Markdown → HTML renderer (no library) ----------
    You write plain, readable text; this turns it into the post HTML — and the editor's live
@@ -1086,47 +1108,6 @@ function mdBlock(b){
 }
 function mdToHtml(md){ return (md||'').replace(/\r/g,'').split(/\n{2,}/).map(mdBlock).filter(Boolean).join('\n'); }
 
-/* ---------- the sounds ----------
-   Four tiny interaction sounds, synthesized live with the browser's own Web Audio API —
-   no recordings, no files, no library. (The idea of live-synthesized interface cues is
-   borrowed with admiration from Cuelume, cuelume-site.pages.dev; the sounds themselves
-   are pressed here, one-of-one, like the trinkets.) Every sound fires only inside a
-   click, which is why browsers allow them at all; the footer's small "sound" switch
-   turns them off, and the browser remembers (localStorage). */
-let _ac=null;
-const soundOn=()=>localStorage.getItem('sound')!=='off';
-const ac=()=>_ac||(_ac=new (window.AudioContext||window.webkitAudioContext)());
-// one enveloped oscillator: frequency f (optionally sliding to f2), length dur, loudness g.
-// The gain ramps in over 5ms and decays away exponentially — that envelope is what makes
-// it a soft "note" instead of a raw beep.
-function toneAt(o){ const a=ac(), t=a.currentTime+(o.at||0);
-  const osc=a.createOscillator(), gn=a.createGain();
-  osc.type=o.type||'sine'; osc.frequency.setValueAtTime(o.f,t);
-  if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.dur);
-  gn.gain.setValueAtTime(.0001,t);
-  gn.gain.exponentialRampToValueAtTime(o.g||.05,t+.005);
-  gn.gain.exponentialRampToValueAtTime(.0001,t+o.dur);
-  osc.connect(gn).connect(a.destination); osc.start(t); osc.stop(t+o.dur+.02); }
-// a dying puff of filtered noise: the paper sounds. A filter shapes which part of the
-// hiss you hear; sweeping its frequency (f → f2) is what reads as a page sliding.
-function noiseAt(o){ const a=ac(), t=a.currentTime;
-  const len=Math.ceil(a.sampleRate*o.dur), buf=a.createBuffer(1,len,a.sampleRate), d=buf.getChannelData(0);
-  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
-  const src=a.createBufferSource(); src.buffer=buf;
-  const fl=a.createBiquadFilter(); fl.type=o.ftype||'bandpass'; fl.frequency.setValueAtTime(o.f,t); fl.Q.value=o.q||1;
-  if(o.f2) fl.frequency.exponentialRampToValueAtTime(o.f2,t+o.dur);
-  const gn=a.createGain(); gn.gain.value=o.g||.06;
-  src.connect(fl).connect(gn).connect(a.destination); src.start(t); }
-// the cue sheet — what noise each thing makes. Volumes are deliberately shy.
-const CUE={
-  paper: ()=>{ noiseAt({dur:.18,f:900,f2:2600,q:.8,g:.10}) },                 // a page slid aside
-  press: ()=>{ noiseAt({dur:.06,f:220,ftype:'lowpass',g:.22});               // the platen coming down
-               toneAt({f:120,f2:55,dur:.12,g:.12}) },
-  tick:  ()=>{ noiseAt({dur:.02,f:3000,q:2,g:.05}) },                        // a key of the desk
-  chime: ()=>{ toneAt({f:1244.5,dur:.5,g:.035}); toneAt({f:1866,dur:.6,g:.02,at:.02}) } // the printer's mark
-};
-function cue(n){ if(!soundOn()) return; try{ CUE[n]&&CUE[n]() }catch(_){} }  // a sound must never break the page
-
 function renderAll(){ renderStream(); renderArchive(); renderListening(); }
 renderAll(); // do it once on load
 
@@ -1141,9 +1122,10 @@ function unfoldRow(row){
     full.dataset.filled='1';
   }
   row.classList.add('open');
+  row.querySelector('.lt').setAttribute('aria-expanded','true');
 }
 function wakeArchive(){ $('#archive').classList.add('awake'); $('#wakeline').style.display='none'; }
-$('#wake').addEventListener('click', e=>{ e.preventDefault(); wakeArchive(); cue('paper');
+$('#wake').addEventListener('click', e=>{ e.preventDefault(); wakeArchive();
   $('#archive').scrollIntoView({behavior:'smooth'}); });
 
 // One click listener on the whole document ("event delegation") handles every door and
@@ -1155,13 +1137,13 @@ document.addEventListener('click', e=>{
   if(door){ e.preventDefault();
     const v=document.getElementById(door.dataset.door);
     v.classList.toggle('awake');                                     // click again to close it
-    if(v.classList.contains('awake')){ cue('paper'); v.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    if(v.classList.contains('awake')) v.scrollIntoView({behavior:'smooth', block:'nearest'});
     return; }
   const sh=e.target.closest('[data-share]');                         // a "pass it on" link?
   if(sh){ e.preventDefault(); shareCard(sh.dataset.slug, sh.dataset.share, sh); return; }
   const lt=e.target.closest('.lrow .lt');                            // an archive essay title?
   if(lt){ const row=lt.closest('.lrow');
-    if(row.classList.contains('open')) row.classList.remove('open'); else { unfoldRow(row); cue('paper'); } }
+    if(row.classList.contains('open')){ row.classList.remove('open'); lt.setAttribute('aria-expanded','false'); } else unfoldRow(row); }
 });
 
 // Arriving with a #post-… link: the essay is either in the stream (its article has the id)
@@ -1179,18 +1161,10 @@ const totop = $('#totop');
 totop.addEventListener('click',()=> scrollTo({top:0, behavior:'smooth'}));
 addEventListener('scroll',()=> totop.classList.toggle('show', scrollY>600));
 
-// the footer's sound switch: flip the preference, relabel, and give a tiny tick of
-// proof when turning ON (turning off is confirmed by the silence itself).
-const snd=$('#snd');
-const sndLabel=()=>{ snd.textContent = soundOn() ? 'sound: on' : 'sound: off' };
-snd.addEventListener('click', e=>{ e.preventDefault();
-  localStorage.setItem('sound', soundOn() ? 'off' : 'on'); sndLabel(); cue('tick'); });
-sndLabel();
-
 // easter egg: click the masthead ornament → toggle the hidden printer's mark.
 $('#ornament').addEventListener('click',()=>{ const m=$('#printmark');
   m.style.display = m.style.display==='block'?'none':'block';
-  if(m.style.display==='block') cue('chime'); });
+});
 
 /* ---------- the writing desk (#admin) ----------
    A hash "route": when the URL is #admin, .admin-mode hides the site and shows only the editor. */
@@ -1199,8 +1173,6 @@ function route(){ document.body.classList.toggle('admin-mode', location.hash==='
     if(!$('#admin').classList.contains('unlocked')) $('#gate-pass').focus(); } }
 // leave the desk / go home WITHOUT the dangling "#" that location.hash='' leaves in the
 // URL — replaceState rewrites the address cleanly, then route() re-reads it.
-// NOTE the window. prefix: the editor's undo code declares `let history` further down,
-// which shadows the browser's history object across this whole script.
 function goHome(){ window.history.replaceState(null, '', location.pathname+location.search); route(); }
 addEventListener('hashchange', route); route();
 
@@ -1213,7 +1185,8 @@ const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/
 let editing=null;                           // the ENTRIES object loaded for editing (null = new)
 function gather(){
   const type=$('#f-type').value;
-  const date=editing ? editing.date : new Date().toISOString().slice(0,10);
+  const now=new Date();
+  const date=editing ? editing.date : `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   if(type==='essay'){
     const s={ song:$('#f-song').value.trim()||null, url:$('#f-url').value.trim()||null };
     return { type,
@@ -1232,10 +1205,10 @@ function gather(){
   if(type==='song') small.song=$('#f-song').value.trim()||null;
   return small;
 }
-// Two entries are "the same one": essays whenever slugs match; small entries when
-// type + date + text/src match (they have no slug — this triple is their identity).
-const sameEntry=(a,b)=> !!(a&&b) && ( (a.slug&&b.slug) ? a.slug===b.slug
-  : a.type===b.type && a.date===b.date && (a.text||a.src||'')===(b.text||b.src||'') );
+// New small entries have stable IDs, so two songs with no text stay separate.
+// Old entries still match their saved fields until an edit gives them an ID.
+const sameEntry=(a,b)=> !!(a&&b) && ( (a.id||b.id) ? a.id===b.id : (a.slug&&b.slug) ? a.slug===b.slug
+  : a.type===b.type && a.date===b.date && (a.text||a.src||'')===(b.text||b.src||'') && (a.song||'')===(b.song||'') && (a.url||'')===(b.url||'') );
 // the preview renders through entryHTML — the exact function the site uses
 function syncPreview(){ const p=gather();
   $('#preview').innerHTML = entryHTML(p.type==='essay' ? {...p, title:p.title||'Untitled'} : p); }
@@ -1254,16 +1227,16 @@ function applyType(){
 $('#f-type').addEventListener('change', applyType);
 
 /* toolbar + undo. Editing textarea.value directly wipes the browser's native undo, so we keep
-   our own snapshot history — which also powers a tappable Undo button for phones (no Ctrl+Z there). */
-let history=[body.value], hi=0;
-function commit(){ const v=body.value; if(history[hi]!==v){ history=history.slice(0,hi+1); history.push(v); hi++; } }
-function undo(){ if(hi>0){ hi--; body.value=history[hi]; syncPreview(); body.focus(); } }
+   our own undo history — which also powers a tappable Undo button for phones (no Ctrl+Z there). */
+let undoHistory=[body.value], hi=0;
+function commit(){ const v=body.value; if(undoHistory[hi]!==v){ undoHistory=undoHistory.slice(0,hi+1); undoHistory.push(v); hi++; } }
+function undo(){ if(hi>0){ hi--; body.value=undoHistory[hi]; formDirty=true; syncPreview(); body.focus(); } }
 function wrapSelection(before, after){
   commit();                                                  // record BEFORE the change so undo can return here
   const s=body.selectionStart, e=body.selectionEnd, v=body.value;
   body.value = v.slice(0,s) + before + v.slice(s,e) + after + v.slice(e);
   body.focus(); body.selectionStart=s+before.length; body.selectionEnd=e+before.length;
-  commit(); syncPreview();
+  formDirty=true; commit(); syncPreview();
 }
 // Drop-cap the paragraph the cursor is in (or the selection), as a <p class="dropcap [yinit]">.
 // Works anywhere and any number of times — each marked paragraph gets its own big initial.
@@ -1285,7 +1258,7 @@ function dropCap(variant){
     : marker + chunk;
   body.value = v.slice(0,s) + out + v.slice(e);
   body.focus(); body.selectionStart = body.selectionEnd = s + out.length;
-  commit(); syncPreview();
+  formDirty=true; commit(); syncPreview();
 }
 // Prefix the current line(s) with a Markdown marker (## , > , - , 1. …), swapping any existing one.
 function prefixLines(pfx){
@@ -1299,7 +1272,7 @@ function prefixLines(pfx){
   }).join('\n');
   body.value = v.slice(0,ls) + out + v.slice(le);
   body.focus(); body.selectionStart=ls; body.selectionEnd=ls+out.length;
-  commit(); syncPreview();
+  formDirty=true; commit(); syncPreview();
 }
 
 document.querySelectorAll('#admin .toolbar button').forEach(b=>{
@@ -1307,7 +1280,6 @@ document.querySelectorAll('#admin .toolbar button').forEach(b=>{
   // view doesn't jump (this is what was yanking you out of the box on H2 / quote).
   b.addEventListener('mousedown', e=> e.preventDefault());
   b.addEventListener('click', ()=>{
-  cue('tick');
   const d=b.dataset;
   if('undo' in d) return undo();
   if(d.cap) return dropCap(d.cap);
@@ -1363,7 +1335,9 @@ function populateExisting(){
   });
 }
 $('#existing').addEventListener('change', e=>{
-  const p = existingList[+e.target.value];
+  if(formDirty && !confirm('Discard the unsaved text?')){ e.target.value=editing ? String(existingList.indexOf(editing)) : ''; return; }
+  const p = e.target.value==='' ? null : existingList[+e.target.value];
+  formDirty=false;
   if(!p){ $('#clear').click(); return; }
   editing=p;
   $('#f-type').value=p.type;
@@ -1372,7 +1346,7 @@ $('#existing').addEventListener('change', e=>{
   $('#f-cover').value   = p.type==='picture' ? (p.src||'')     : (p.cover||'');
   $('#f-url').value=p.url||''; $('#f-song').value=p.song||'';
   body.value = p.type==='essay' ? (p.body||'') : (p.text||'');
-  history=[body.value]; hi=0;
+  undoHistory=[body.value]; hi=0;
   $('#delete').style.display='';
   applyType();                          // flips the field groups + redraws the preview
 });
@@ -1466,16 +1440,21 @@ function applyOp(list, op){                       // one op onto one list, newes
 function stage(add, remove){
   pending.push({add, remove});
   const next=applyOp(ENTRIES, {add, remove});
+  formDirty=false;
   ENTRIES.length=0; ENTRIES.push(...next);
   renderAll(); populateExisting();
   $('#clear').click();
   const n=pending.length;
   $('#press').style.display=''; $('#press').textContent=`Publish ${n} change${n>1?'s':''}`;
 }
-addEventListener('beforeunload', e=>{ if(pending.length) e.preventDefault(); });
+// A form edit also needs a warning, even before Save adds it to the publish queue.
+let formDirty=false;
+$('#desk').addEventListener('input',e=>{if(e.target.id!=='existing') formDirty=true;});
+addEventListener('beforeunload', e=>{ if(pending.length || formDirty){ e.preventDefault(); e.returnValue=''; } });
 
 $('#save').addEventListener('click', ()=>{
   const p = gather();
+  if(p.type!=='essay') p.id=editing?.id || crypto.randomUUID();
   if(p.type==='essay'   && (!p.title || !p.slug)) return msg('Title and slug are required.', true);
   if(p.type==='picture' && !p.src)                return msg('A picture needs its image URL.', true);
   if(p.type==='song' && !p.text && !p.song)   return msg('Write a line or paste a link first.', true);
@@ -1490,6 +1469,9 @@ $('#delete').addEventListener('click', ()=>{
   stage(null, editing);
   msg(`Marked for deletion — ${pending.length} change${pending.length>1?'s':''} waiting.`);
 });
+
+// Escape less-than signs so post text cannot end the surrounding script element.
+function serializeEntries(entries){ return JSON.stringify(entries, null, 2).replace(/</g, '\\u003c'); }
 
 // fetch the live file, replay the whole queue onto its ENTRIES block, commit ONCE
 async function commitOps(retried){
@@ -1506,7 +1488,7 @@ async function commitOps(retried){
   const message = pending.length>1 ? `press: ${pending.length} changes`
     : one.add ? `${one.remove?'edit':'new'} ${one.add.type}: ${what(one.add)}`
     : `delete ${one.remove.type}: ${what(one.remove)}`;
-  const out = src.slice(0, a+A.length) + '\nconst ENTRIES = ' + JSON.stringify(next, null, 2) + ';\n' + src.slice(b);
+  const out = src.slice(0, a+A.length) + '\nconst ENTRIES = ' + serializeEntries(next) + ';\n' + src.slice(b);
   try{
     await gh('index.html', { method:'PUT',
       body: JSON.stringify({ message, content:utf8ToB64(out), sha:file.sha, branch:CONFIG.BRANCH }) });
@@ -1528,7 +1510,7 @@ $('#press').addEventListener('click', async ()=>{
     const next = await commitOps();
     ENTRIES.length=0; ENTRIES.push(...next); renderAll(); populateExisting();
     pending=[]; $('#press').style.display='none';
-    msg('Pressed ✓ — live on the site in about a minute.'); cue('press');
+    msg('Pressed ✓ — live on the site in about a minute.');
     setTimeout(goHome, 900);
   }catch(err){ msg(err.message, true); }
 });
@@ -1549,6 +1531,7 @@ $('#f-image').addEventListener('change', async e=>{
     const ext  = (file.name.match(/\.\w+$/)||['.jpg'])[0];
     const path = `images/${Date.now()}-${slugify(file.name.replace(/\.\w+$/,''))||'img'}${ext}`;  // timestamp = unique, no collisions
     await gh(path, { method:'PUT', body: JSON.stringify({ message:`image: ${file.name}`, content:b64, branch:CONFIG.BRANCH }) });
+    formDirty=true;
     const url = `https://raw.githubusercontent.com/${CONFIG.OWNER}/${CONFIG.REPO}/${CONFIG.BRANCH}/${path}`;
     if(!$('#f-cover').value) $('#f-cover').value = url;         // an empty Cover field claims the image…
     else wrapSelection(`![](${url})`, '');                      // …otherwise it drops into the body at the cursor
@@ -1556,10 +1539,12 @@ $('#f-image').addEventListener('change', async e=>{
   }catch(err){ msg(err.message, true); }
 });
 $('#clear').addEventListener('click', ()=>{
+  if(formDirty && !confirm('Discard the unsaved text?')) return;
+  formDirty=false;
   ['f-title','f-slug','f-preview','f-cover','f-url','f-song'].forEach(f=>$('#'+f).value='');
   $('#f-slug').dataset.touched='';
   editing=null; $('#existing').value=''; $('#delete').style.display='none';
-  body.value=''; history=['']; hi=0; syncPreview(); msg('');
+  body.value=''; undoHistory=['']; hi=0; syncPreview(); msg('');
 });
 
 populateExisting();
